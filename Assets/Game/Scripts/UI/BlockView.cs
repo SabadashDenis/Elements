@@ -1,4 +1,5 @@
 using Game.Scripts.Core;
+using Game.Scripts.Data;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,12 +8,13 @@ public class BlockView : DragView
 {
     [SerializeField, FoldoutGroup("Block Config")] private BlockConfig config;
 
-    [SerializeField] private Image view;
+    [SerializeField] private RectTransform view;
     [SerializeField] private Animator animator;
 
     private BlockType _type;
 
     public BlockType GetBlockType => _type;
+    public RectTransform View => view;
     
     public void SetType(BlockType type)
     {

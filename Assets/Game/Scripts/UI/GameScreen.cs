@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Scripts.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -12,6 +13,9 @@ namespace Game.Scripts.Core
         [SerializeField] private RectTransform blocksGridRect;
         [SerializeField] private BlockView blockViewPrefab;
         [SerializeField] private TMP_Text levelText;
+        [SerializeField] private Transform swapContainer;
+
+        public Transform SwapContainer => swapContainer;
         
         public Dictionary<Vector2Int, BlockView> CreateMap(BlockType[,] mapData)
         {

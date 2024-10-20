@@ -38,7 +38,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 7.614134e-15, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.37, y: 0.37}
 --- !u!222 &4430212586756235405
 CanvasRenderer:
@@ -157,8 +157,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 5142370006998909218}
   - {fileID: 1816585248901885936}
+  - {fileID: 5142370006998909218}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -184,7 +184,7 @@ MonoBehaviour:
   hideAnimation: {fileID: 0}
   distanceToDetectSwipe: 50
   config: {fileID: 11400000, guid: f692079d414b2d74e99e31ed898d8186, type: 2}
-  view: {fileID: 775278564647180886}
+  view: {fileID: 5142370006998909218}
   animator: {fileID: 5150351298316801219}
 --- !u!225 &896174703441069913
 CanvasGroup:

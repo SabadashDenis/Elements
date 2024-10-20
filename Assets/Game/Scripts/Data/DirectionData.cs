@@ -4,16 +4,16 @@ namespace Game.Scripts.Data
 {
     public struct DirectionData
     {
-        private readonly Direction _direction;
+        public readonly Direction Direction;
 
         public DirectionData(Direction dir)
         {
-            _direction = dir;
+            Direction = dir;
         }
 
         public Vector2Int GetOffset()
         {
-            switch (_direction)
+            switch (Direction)
             {
                 case Direction.Left:
                     return new Vector2Int(-1, 0);

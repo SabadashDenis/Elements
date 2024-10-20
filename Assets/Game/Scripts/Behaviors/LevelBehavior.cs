@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using Game.Scripts.Data;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ namespace Game.Scripts.Core
     public class LevelBehavior : GameBehaviorBase
     {
         [SerializeField] private LevelsConfig levelsConfig;
+        [SerializeField] private SwapAnimData swapAnimConfig;
 
         private GameScreen _gameScreen;
 
@@ -23,7 +25,7 @@ namespace Game.Scripts.Core
         private void LoadLevel(int index)
         {
             UnloadCurrentLevel();
-            
+
             var levelData = levelsConfig.LevelDatas[index % levelsConfig.LevelDatas.Count];
 
             BlockType[,] mapData = new BlockType[levelData.MapSize.x, levelData.MapSize.y];
@@ -51,11 +53,50 @@ namespace Game.Scripts.Core
 
             if (_currentMap.TryGetValue(blockToSwapPos, out var blockToSwap))
             {
-                var firstBlockType = swipedBlock.GetBlockType;
-                var secondBlockType = blockToSwap.GetBlockType;
-                
-                swipedBlock.SetType(secondBlockType);
-                blockToSwap.SetType(firstBlockType);
+                if (!(directionData.Direction is Direction.Top && blockToSwap.GetBlockType is BlockType.Empty))
+                    DoBlocksSwap(swipedBlock, blockToSwap);
+            }
+        }
+
+        private void DoBlocksSwap(BlockView first, BlockView second)
+        {
+            var firstType = first.GetBlockType;
+            var secondType = second.GetBlockType;
+
+            var firstViewPos = first.View.position;
+            var secondViewPos = second.View.position;
+
+            first.View.SetParent(_gameScreen.SwapContainer, true);
+            second.View.SetParent(_gameScreen.SwapContainer, true);
+
+            var standardScale = first.View.localScale;
+
+
+            Sequence swapSequence = DOTween.Sequence()
+                .Join(first.View.DOScale(standardScale * swapAnimConfig.ScaleInMultiplier,
+                    swapAnimConfig.ScaleDuration))
+                .Join(second.View.DOScale(standardScale * swapAnimConfig.ScaleInMultiplier,
+                    swapAnimConfig.ScaleDuration))
+                .Append(first.View.DOMove(secondViewPos, swapAnimConfig.MoveDuration).SetEase(Ease.InOutSine))
+                .Join(second.View.DOMove(firstViewPos, swapAnimConfig.MoveDuration).SetEase(Ease.InOutSine)
+                    .OnComplete(SwitchViews))
+                .Append(first.View.DOScale(standardScale, swapAnimConfig.ScaleDuration))
+                .Join(second.View.DOScale(standardScale, swapAnimConfig.ScaleDuration));
+
+            void SwitchViews()
+            {
+                first.View.transform.SetParent(first.transform, true);
+                second.View.transform.SetParent(second.transform, true);
+
+                first.SetType(secondType);
+                second.SetType(firstType);
+
+                first.View.anchorMin = Vector2.zero;
+                second.View.anchorMin = Vector2.zero;
+                first.View.anchorMax = Vector2.one;
+                second.View.anchorMax = Vector2.one;
+                first.View.anchoredPosition = Vector2.zero;
+                second.View.anchoredPosition = Vector2.zero;
             }
         }
 
@@ -69,42 +110,8 @@ namespace Game.Scripts.Core
                     Destroy(pair.Value);
                 }
             }
-            
+
             _currentMap.Clear();
         }
-    }
-
-    [Serializable]
-    public struct LevelData
-    {
-        public Vector2Int MapSize;
-        public List<BlockData> BlockDatas;
-
-        public LevelData(Vector2Int mapSize, List<BlockData> blockDatas)
-        {
-            MapSize = mapSize;
-            BlockDatas = blockDatas;
-        }
-    }
-
-    [Serializable]
-    public struct BlockData
-    {
-        public BlockType Type;
-        public Vector2Int Position;
-
-        public BlockData(BlockType type, Vector2Int position)
-        {
-            Type = type;
-            Position = position;
-        }
-    }
-
-    [Serializable]
-    public enum BlockType
-    {
-        Empty = 0,
-        Fire = 1,
-        Water = 2
     }
 }
