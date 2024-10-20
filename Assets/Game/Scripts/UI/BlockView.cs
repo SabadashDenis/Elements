@@ -3,7 +3,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BlockView : ClickableView
+public class BlockView : DragView
 {
     [SerializeField, FoldoutGroup("Block Config")] private BlockConfig config;
 
@@ -18,6 +18,6 @@ public class BlockView : ClickableView
 
         var isVisible = type is not BlockType.Empty;
         view.gameObject.SetActive(isVisible);
-        IsInteractable = isVisible;
+        //IsInteractable = isVisible;
     }
 }

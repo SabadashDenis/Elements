@@ -182,10 +182,7 @@ MonoBehaviour:
   rectTransform: {fileID: 0}
   showAnimation: {fileID: 0}
   hideAnimation: {fileID: 0}
-  pointerDownAnimator: {fileID: 0}
-  pointerUpAnimator: {fileID: 0}
-  clickableContainer: {fileID: 2937382538591316778}
-  viewContainer: {fileID: 1004442158070197668}
+  distanceToDetectSwipe: 1
   config: {fileID: 11400000, guid: f692079d414b2d74e99e31ed898d8186, type: 2}
   view: {fileID: 775278564647180886}
   animator: {fileID: 5150351298316801219}
