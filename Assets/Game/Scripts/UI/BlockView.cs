@@ -18,6 +18,6 @@ public class BlockView : DragView
 
         var isVisible = type is not BlockType.Empty;
         view.gameObject.SetActive(isVisible);
-        //IsInteractable = isVisible;
+        IsInteractable = isVisible;
     }
 }

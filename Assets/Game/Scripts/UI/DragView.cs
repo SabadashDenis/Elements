@@ -9,33 +9,41 @@ namespace Game.Scripts.Core
     {
         [SerializeField] private float distanceToDetectSwipe;
         
-        private Vector2 currentDragData;
-        private bool canDrag = true;
+        private Vector2 _currentDragData;
+        private bool _canDrag = true;
+
+        private bool _isInteractable = true;
 
         public event Action<Direction> OnSwipe = delegate { };
+
+        protected bool IsInteractable
+        {
+            get => _isInteractable;
+            set => _isInteractable = value;
+        }
         
         public void OnBeginDrag(PointerEventData eventData)
         {
-            canDrag = true;
-            currentDragData = Vector2.zero;
+            _canDrag = true;
+            _currentDragData = Vector2.zero;
         }
 
         public void OnDrag(PointerEventData eventData)
         {
-            if (canDrag)
+            if (_canDrag)
             {
-                currentDragData += eventData.delta;
+                _currentDragData += eventData.delta;
 
-                if (Mathf.Abs(currentDragData.x) > distanceToDetectSwipe)
+                if (Mathf.Abs(_currentDragData.x) > distanceToDetectSwipe)
                 {
-                    canDrag = false;
-                    var resultDir = currentDragData.x < 0 ? Direction.Left : Direction.Right;
+                    _canDrag = false;
+                    var resultDir = _currentDragData.x < 0 ? Direction.Left : Direction.Right;
                     OnSwipe.Invoke(resultDir);
                 } 
-                else if (Mathf.Abs(currentDragData.y) > distanceToDetectSwipe)
+                else if (Mathf.Abs(_currentDragData.y) > distanceToDetectSwipe)
                 {
-                    canDrag = false;
-                    var resultDir = currentDragData.y < 0 ? Direction.Bottom : Direction.Top;
+                    _canDrag = false;
+                    var resultDir = _currentDragData.y < 0 ? Direction.Bottom : Direction.Top;
                     OnSwipe.Invoke(resultDir);
                 }
             }
