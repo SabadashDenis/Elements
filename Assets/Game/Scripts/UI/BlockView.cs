@@ -10,8 +10,14 @@ public class BlockView : DragView
     [SerializeField] private Image view;
     [SerializeField] private Animator animator;
 
+    private BlockType _type;
+
+    public BlockType GetBlockType => _type;
+    
     public void SetType(BlockType type)
     {
+        _type = type;
+        
         var typeData = config.GetDataForType(type);
         
         animator.runtimeAnimatorController = typeData.AnimatorController;

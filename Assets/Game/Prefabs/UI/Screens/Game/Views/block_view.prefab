@@ -182,7 +182,7 @@ MonoBehaviour:
   rectTransform: {fileID: 0}
   showAnimation: {fileID: 0}
   hideAnimation: {fileID: 0}
-  distanceToDetectSwipe: 1
+  distanceToDetectSwipe: 50
   config: {fileID: 11400000, guid: f692079d414b2d74e99e31ed898d8186, type: 2}
   view: {fileID: 775278564647180886}
   animator: {fileID: 5150351298316801219}

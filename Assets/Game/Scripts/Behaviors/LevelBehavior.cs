@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Scripts.Data;
 using UnityEngine;
 
 namespace Game.Scripts.Core
@@ -32,7 +33,30 @@ namespace Game.Scripts.Core
                 mapData[blockData.Position.x, blockData.Position.y] = blockData.Type;
             }
 
-            _currentMap = _gameScreen.CreateMap(mapData, index + 1);
+            _gameScreen.SetupLevelText(index);
+            _currentMap = _gameScreen.CreateMap(mapData);
+
+            foreach (var mapElement in _currentMap)
+            {
+                mapElement.Value.OnSwipe += (dir) => OnBlockSwiped(dir, mapElement);
+            }
+        }
+
+        private void OnBlockSwiped(DirectionData directionData, KeyValuePair<Vector2Int, BlockView> swipedElement)
+        {
+            var swipedBlockPos = swipedElement.Key;
+            var swipedBlock = swipedElement.Value;
+
+            var blockToSwapPos = swipedBlockPos + directionData.GetOffset();
+
+            if (_currentMap.TryGetValue(blockToSwapPos, out var blockToSwap))
+            {
+                var firstBlockType = swipedBlock.GetBlockType;
+                var secondBlockType = blockToSwap.GetBlockType;
+                
+                swipedBlock.SetType(secondBlockType);
+                blockToSwap.SetType(firstBlockType);
+            }
         }
 
         private void UnloadCurrentLevel()
@@ -40,7 +64,10 @@ namespace Game.Scripts.Core
             foreach (var pair in _currentMap)
             {
                 if (pair.Value != null)
+                {
+                    pair.Value.RemoveAllOnSwipeEvents();
                     Destroy(pair.Value);
+                }
             }
             
             _currentMap.Clear();

@@ -1,5 +1,5 @@
 using System;
-using Sirenix.Utilities;
+using Game.Scripts.Data;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -14,7 +14,7 @@ namespace Game.Scripts.Core
 
         private bool _isInteractable = true;
 
-        public event Action<Direction> OnSwipe = delegate { };
+        public event Action<DirectionData> OnSwipe = delegate { };
 
         protected bool IsInteractable
         {
@@ -38,15 +38,17 @@ namespace Game.Scripts.Core
                 {
                     _canDrag = false;
                     var resultDir = _currentDragData.x < 0 ? Direction.Left : Direction.Right;
-                    OnSwipe.Invoke(resultDir);
+                    OnSwipe.Invoke(new DirectionData(resultDir));
                 } 
                 else if (Mathf.Abs(_currentDragData.y) > distanceToDetectSwipe)
                 {
                     _canDrag = false;
                     var resultDir = _currentDragData.y < 0 ? Direction.Bottom : Direction.Top;
-                    OnSwipe.Invoke(resultDir);
+                    OnSwipe.Invoke(new DirectionData(resultDir));
                 }
             }
         }
+
+        public void RemoveAllOnSwipeEvents() => OnSwipe = delegate { };
     }
 }

@@ -13,7 +13,7 @@ namespace Game.Scripts.Core
         [SerializeField] private BlockView blockViewPrefab;
         [SerializeField] private TMP_Text levelText;
         
-        public Dictionary<Vector2Int, BlockView> CreateMap(BlockType[,] mapData, int levelIndex)
+        public Dictionary<Vector2Int, BlockView> CreateMap(BlockType[,] mapData)
         {
             Dictionary<Vector2Int, BlockView> mapDictionary = new();
 
@@ -33,9 +33,13 @@ namespace Game.Scripts.Core
                 }
             }
 
-            levelText.text = $"Level {levelIndex.ToString()}";
-
             return mapDictionary;
+        }
+
+        public void SetupLevelText(int levelArrayIndex)
+        {
+            var trueLevelNumber = levelArrayIndex + 1;
+            levelText.text = $"Level {trueLevelNumber.ToString()}";
         }
     }
 }
