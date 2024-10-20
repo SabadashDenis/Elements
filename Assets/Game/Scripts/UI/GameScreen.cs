@@ -22,9 +22,7 @@ namespace Game.Scripts.Core
 
             var cellSize = blocksGridRect.rect.size.x / mapXSize;
             blocksGrid.cellSize = new Vector2(cellSize, cellSize);
-            
-            Debug.Log($"MapSize[{mapXSize},{mapYSize}]");
-            
+
             for (int i = 0; i < mapXSize; i++)
             {
                 for (int j = 0; j < mapYSize; j++)
