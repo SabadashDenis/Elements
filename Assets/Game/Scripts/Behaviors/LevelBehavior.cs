@@ -66,23 +66,25 @@ namespace Game.Scripts.Core
             var firstViewPos = first.View.position;
             var secondViewPos = second.View.position;
 
-            first.View.SetParent(_gameScreen.SwapContainer, true);
-            second.View.SetParent(_gameScreen.SwapContainer, true);
-
             var standardScale = first.View.localScale;
 
 
             Sequence swapSequence = DOTween.Sequence()
-                .Join(first.View.DOScale(standardScale * swapAnimConfig.ScaleInMultiplier,
-                    swapAnimConfig.ScaleDuration))
-                .Join(second.View.DOScale(standardScale * swapAnimConfig.ScaleInMultiplier,
-                    swapAnimConfig.ScaleDuration))
+                .Join(first.View.DOScale(standardScale * swapAnimConfig.ScaleInMultiplier, swapAnimConfig.ScaleDuration))
+                .Join(second.View.DOScale(standardScale * swapAnimConfig.ScaleInMultiplier, swapAnimConfig.ScaleDuration)
+                    .OnComplete(MoveToContainer))
                 .Append(first.View.DOMove(secondViewPos, swapAnimConfig.MoveDuration).SetEase(Ease.InOutSine))
                 .Join(second.View.DOMove(firstViewPos, swapAnimConfig.MoveDuration).SetEase(Ease.InOutSine)
                     .OnComplete(SwitchViews))
                 .Append(first.View.DOScale(standardScale, swapAnimConfig.ScaleDuration))
                 .Join(second.View.DOScale(standardScale, swapAnimConfig.ScaleDuration));
 
+            void MoveToContainer()
+            {
+                first.View.SetParent(_gameScreen.SwapContainer, true);
+                second.View.SetParent(_gameScreen.SwapContainer, true);
+            }
+            
             void SwitchViews()
             {
                 first.View.transform.SetParent(first.transform, true);
