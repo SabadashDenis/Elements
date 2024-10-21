@@ -19,7 +19,7 @@ namespace Game.Scripts.Data
                     return new Vector2Int(-1, 0);
                 case Direction.Right:
                     return new Vector2Int(1, 0);
-                case Direction.Bottom:
+                case Direction.Down:
                     return new Vector2Int(0, -1);
                 default: 
                     return new Vector2Int(0, 1);
@@ -31,7 +31,7 @@ namespace Game.Scripts.Data
     {
         Left,
         Right,
-        Top,
-        Bottom,
+        Up,
+        Down,
     }
 }

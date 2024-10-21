@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Game.Scripts.Data;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Scripts.Core
@@ -44,7 +46,7 @@ namespace Game.Scripts.Core
             }
         }
 
-        private void OnBlockSwiped(DirectionData directionData, KeyValuePair<Vector2Int, BlockView> swipedElement)
+        private async void OnBlockSwiped(DirectionData directionData, KeyValuePair<Vector2Int, BlockView> swipedElement)
         {
             var swipedBlockPos = swipedElement.Key;
             var swipedBlock = swipedElement.Value;
@@ -53,13 +55,18 @@ namespace Game.Scripts.Core
 
             if (_currentMap.TryGetValue(blockToSwapPos, out var blockToSwap))
             {
-                if (!(directionData.Direction is Direction.Top && blockToSwap.GetBlockType is BlockType.Empty))
-                    DoBlocksSwap(swipedBlock, blockToSwap);
+                if (!(directionData.Direction is Direction.Up && blockToSwap.GetBlockType is BlockType.Empty))
+                {
+                    await DoBlocksSwap(swipedBlock, blockToSwap);
+                    NormalizeMap();
+                }
             }
         }
 
-        private void DoBlocksSwap(BlockView first, BlockView second)
+        private async UniTask DoBlocksSwap(BlockView first, BlockView second, bool withScale = true, int blocksChainLength = 1)
         {
+            bool swapCompleted = false;
+            
             var firstType = first.GetBlockType;
             var secondType = second.GetBlockType;
 
@@ -68,16 +75,29 @@ namespace Game.Scripts.Core
 
             var standardScale = first.View.localScale;
 
+            Sequence swapSequence = DOTween.Sequence();
 
-            Sequence swapSequence = DOTween.Sequence()
-                .Join(first.View.DOScale(standardScale * swapAnimConfig.ScaleInMultiplier, swapAnimConfig.ScaleDuration))
-                .Join(second.View.DOScale(standardScale * swapAnimConfig.ScaleInMultiplier, swapAnimConfig.ScaleDuration)
-                    .OnComplete(MoveToContainer))
-                .Append(first.View.DOMove(secondViewPos, swapAnimConfig.MoveDuration).SetEase(Ease.InOutSine))
-                .Join(second.View.DOMove(firstViewPos, swapAnimConfig.MoveDuration).SetEase(Ease.InOutSine)
-                    .OnComplete(SwitchViews))
-                .Append(first.View.DOScale(standardScale, swapAnimConfig.ScaleDuration))
-                .Join(second.View.DOScale(standardScale, swapAnimConfig.ScaleDuration));
+            if (withScale)
+            {
+                swapSequence
+                    .Join(first.View.DOScale(standardScale * swapAnimConfig.ScaleInMultiplier, swapAnimConfig.ScaleDuration))
+                    .Join(second.View.DOScale(standardScale * swapAnimConfig.ScaleInMultiplier, swapAnimConfig.ScaleDuration)
+                        .OnComplete(MoveToContainer));
+            }
+
+            swapSequence
+                .Append(first.View.DOMove(secondViewPos, swapAnimConfig.MoveDuration * blocksChainLength).SetEase(Ease.InOutSine))
+                .Join(second.View.DOMove(firstViewPos, swapAnimConfig.MoveDuration * blocksChainLength).SetEase(Ease.InOutSine)
+                    .OnComplete(SwitchViews));
+
+            if (withScale)
+            {
+                swapSequence
+                    .Append(first.View.DOScale(standardScale, swapAnimConfig.ScaleDuration))
+                    .Join(second.View.DOScale(standardScale, swapAnimConfig.ScaleDuration));
+            }
+
+            swapSequence.OnComplete(() => swapCompleted = true);
 
             void MoveToContainer()
             {
@@ -99,6 +119,69 @@ namespace Game.Scripts.Core
                 second.View.anchorMax = Vector2.one;
                 first.View.anchoredPosition = Vector2.zero;
                 second.View.anchoredPosition = Vector2.zero;
+            }
+
+            await UniTask.WaitUntil(() => swapCompleted);
+        }
+
+        private void NormalizeMap()
+        {
+            foreach (var mapElement in _currentMap)
+            {
+                if (mapElement.Value.GetBlockType is not BlockType.Empty)
+                {
+                    DoFall(mapElement.Key);
+                }
+            }
+        }
+
+        private bool CanFallOneCell(Vector2Int mapElementPos, out Vector2Int underBlockPos)
+        {
+            underBlockPos = mapElementPos + new DirectionData(Direction.Down).GetOffset();
+
+            if (_currentMap.TryGetValue(underBlockPos, out var bottomElement))
+            {
+                if (bottomElement.GetBlockType is BlockType.Empty)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool HasBlockAbove(Vector2Int mapElementPos, out Vector2Int aboveBlockPos)
+        {
+            aboveBlockPos = mapElementPos + new DirectionData(Direction.Up).GetOffset();
+
+            if (_currentMap.TryGetValue(aboveBlockPos, out var topElement))
+            {
+                if (topElement.GetBlockType is not BlockType.Empty)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private async void DoFall(Vector2Int mapElementPos)
+        {
+            Vector2Int resultPos = mapElementPos;
+
+            int cellsToFall = 0;
+            
+            while (CanFallOneCell(resultPos, out var underBlockPos))
+            {
+                resultPos = underBlockPos;
+                cellsToFall++;
+            }
+
+            if (resultPos != mapElementPos)
+            {
+                _currentMap.TryGetValue(mapElementPos, out var fallenBlock);
+                _currentMap.TryGetValue(resultPos, out var lastBottomBlock);
+                
+                await DoBlocksSwap(fallenBlock, lastBottomBlock, false, cellsToFall);
+                
+                if(HasBlockAbove(mapElementPos, out var topElementPos))
+                    DoFall(topElementPos);
             }
         }
 

@@ -43,7 +43,7 @@ namespace Game.Scripts.Core
                 else if (Mathf.Abs(_currentDragData.y) > distanceToDetectSwipe)
                 {
                     _canDrag = false;
-                    var resultDir = _currentDragData.y < 0 ? Direction.Bottom : Direction.Top;
+                    var resultDir = _currentDragData.y < 0 ? Direction.Down : Direction.Up;
                     OnSwipe.Invoke(new DirectionData(resultDir));
                 }
             }
