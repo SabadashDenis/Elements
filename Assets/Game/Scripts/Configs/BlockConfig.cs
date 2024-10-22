@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Scripts.Data;
-using UnityEditor.Animations;
 using UnityEngine;
 
 namespace Game.Scripts.Core
@@ -20,9 +19,9 @@ namespace Game.Scripts.Core
     public struct BlockConfigData
     {
         [SerializeField] private BlockType type;
-        [SerializeField] private AnimatorController animatorController;
+        [SerializeField] private RuntimeAnimatorController animatorController;
 
         public BlockType Type => type;
-        public AnimatorController AnimatorController => animatorController;
+        public RuntimeAnimatorController AnimatorController => animatorController;
     }
 }
