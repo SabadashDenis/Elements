@@ -49,16 +49,20 @@ namespace Game.Scripts.Core
         {
             var swipedBlockPos = swipedElement.Key;
             var swipedBlock = swipedElement.Value;
-
+            
+            
             var blockToSwapPos = swipedBlockPos + DirectionUtility.GetOffset(swipeDirection);
 
             if (_currentMap.TryGetValue(blockToSwapPos, out var blockToSwap))
             {
+                if(swipedBlock.IsBusy || blockToSwap.IsBusy)
+                    return;
+                
                 if (!(swipeDirection is Direction.Up && blockToSwap.GetBlockType is BlockType.Empty))
                 {
                     await DoBlocksSwap(swipedBlock, blockToSwap);
                     await NormalizeMap();
-                    await CheckMatches();
+                    CheckMatches();
                 }
             }
         }
@@ -75,6 +79,9 @@ namespace Game.Scripts.Core
             var secondViewPos = second.View.position;
 
             var standardScale = first.View.localScale;
+            
+            first.SetBusy(true);
+            second.SetBusy(true);
 
             Sequence swapSequence = DOTween.Sequence();
 
@@ -127,6 +134,9 @@ namespace Game.Scripts.Core
             }
 
             await UniTask.WaitUntil(() => swapCompleted);
+            
+            first.SetBusy(false);
+            second.SetBusy(false);
         }
 
         private async UniTask NormalizeMap()
@@ -144,7 +154,7 @@ namespace Game.Scripts.Core
             await UniTask.WaitWhile(() => normalizeTasks.Any((task) => !task.GetAwaiter().IsCompleted));
         }
 
-        private async UniTask CheckMatches()
+        private void CheckMatches()
         {
             List<Vector2Int> biggestMatchGroup = new();
             
@@ -159,7 +169,21 @@ namespace Game.Scripts.Core
                     biggestMatchGroup.AddRange(currentCheckedGroup);
                 }
             }
+            
+            if(biggestMatchGroup.Count < 3)
+                return;
+            
+            foreach (var groupElementPos in biggestMatchGroup)
+            {
+                if(_currentMap.TryGetValue(groupElementPos, out var groupElement))
+                { 
+                    groupElement.Destroy();
+                }
+            }
+            
+            CheckMatches();
         }
+        
 
         private void CollectNeighbors(Vector2Int checkedPos, ref List<Vector2Int> collectList)
         {
