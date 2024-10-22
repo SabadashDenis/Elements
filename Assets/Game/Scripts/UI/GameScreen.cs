@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Game.Scripts.Data;
 using TMPro;
 using UnityEngine;
@@ -16,7 +18,7 @@ namespace Game.Scripts.Core
         [SerializeField] private Transform swapContainer;
 
         public Transform SwapContainer => swapContainer;
-        
+
         public Dictionary<Vector2Int, BlockView> CreateMap(BlockType[,] mapData)
         {
             Dictionary<Vector2Int, BlockView> mapDictionary = new();
@@ -24,7 +26,7 @@ namespace Game.Scripts.Core
             var mapXSize = mapData.GetLength(0);
             var mapYSize = mapData.GetLength(1);
 
-            var cellSize = blocksGridRect.rect.size.x / mapXSize;
+            var cellSize = (blocksGridRect.anchorMax.x - blocksGridRect.anchorMin.x) * Screen.width / mapXSize;
             blocksGrid.cellSize = new Vector2(cellSize, cellSize);
 
             for (int i = 0; i < mapXSize; i++)
@@ -32,8 +34,8 @@ namespace Game.Scripts.Core
                 for (int j = 0; j < mapYSize; j++)
                 {
                     var newBlockView = Instantiate(blockViewPrefab, blocksGrid.transform);
-                    newBlockView.SetType(mapData[i,j]);
-                    mapDictionary.Add(new Vector2Int(i,j), newBlockView);
+                    newBlockView.SetType(mapData[j, i]);
+                    mapDictionary.Add(new Vector2Int(i, j), newBlockView);
                 }
             }
 

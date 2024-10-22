@@ -13,13 +13,13 @@ namespace Game.Scripts.Data
             switch (dir)
             {
                 case Direction.Left:
-                    return new Vector2Int(-1, 0);
-                case Direction.Right:
-                    return new Vector2Int(1, 0);
-                case Direction.Down:
                     return new Vector2Int(0, -1);
-                default:
+                case Direction.Right:
                     return new Vector2Int(0, 1);
+                case Direction.Down:
+                    return new Vector2Int(-1, 0);
+                default:
+                    return new Vector2Int(1, 0);
             }
         }
     }
