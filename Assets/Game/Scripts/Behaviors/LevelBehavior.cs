@@ -195,6 +195,8 @@ namespace Game.Scripts.Core
                 }
             }
 
+            await UniTask.WaitWhile(() => destroyTasks.Any(task => !task.GetAwaiter().IsCompleted));
+
             CheckMatches();
         }
 
@@ -248,7 +250,7 @@ namespace Game.Scripts.Core
 
             if (_currentMap.TryGetValue(underBlockPos, out var bottomElement))
             {
-                if (bottomElement.GetBlockType is BlockType.Empty)
+                if (bottomElement.GetBlockType is BlockType.Empty && !bottomElement.IsBusy)
                     return true;
             }
 
