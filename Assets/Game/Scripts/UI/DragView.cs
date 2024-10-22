@@ -14,7 +14,7 @@ namespace Game.Scripts.Core
 
         private bool _isInteractable = true;
 
-        public event Action<DirectionData> OnSwipe = delegate { };
+        public event Action<Direction> OnSwipe = delegate { };
 
         protected bool IsInteractable
         {
@@ -38,13 +38,13 @@ namespace Game.Scripts.Core
                 {
                     _canDrag = false;
                     var resultDir = _currentDragData.x < 0 ? Direction.Left : Direction.Right;
-                    OnSwipe.Invoke(new DirectionData(resultDir));
+                    OnSwipe.Invoke(resultDir);
                 } 
                 else if (Mathf.Abs(_currentDragData.y) > distanceToDetectSwipe)
                 {
                     _canDrag = false;
                     var resultDir = _currentDragData.y < 0 ? Direction.Down : Direction.Up;
-                    OnSwipe.Invoke(new DirectionData(resultDir));
+                    OnSwipe.Invoke(resultDir);
                 }
             }
         }

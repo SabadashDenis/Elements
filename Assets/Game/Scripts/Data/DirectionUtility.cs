@@ -1,19 +1,16 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game.Scripts.Data
 {
-    public struct DirectionData
+    public class DirectionUtility
     {
-        public readonly Direction Direction;
+        public static readonly List<Direction> AllDirections = new()
+            { Direction.Up, Direction.Down, Direction.Left, Direction.Right };
 
-        public DirectionData(Direction dir)
+        public static Vector2Int GetOffset(Direction dir)
         {
-            Direction = dir;
-        }
-
-        public Vector2Int GetOffset()
-        {
-            switch (Direction)
+            switch (dir)
             {
                 case Direction.Left:
                     return new Vector2Int(-1, 0);
@@ -21,12 +18,12 @@ namespace Game.Scripts.Data
                     return new Vector2Int(1, 0);
                 case Direction.Down:
                     return new Vector2Int(0, -1);
-                default: 
+                default:
                     return new Vector2Int(0, 1);
             }
         }
     }
-    
+
     public enum Direction
     {
         Left,
