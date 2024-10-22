@@ -183,18 +183,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5449645696289420290, guid: 15b97ccc526b9524e8c77f018e01c6db, type: 3}
-      propertyPath: swapAnimConfig.moveDuration
-      value: 0.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 5449645696289420290, guid: 15b97ccc526b9524e8c77f018e01c6db, type: 3}
-      propertyPath: swapAnimConfig.scaleDuration
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5449645696289420290, guid: 15b97ccc526b9524e8c77f018e01c6db, type: 3}
-      propertyPath: swapAnimConfig.scaleInMultiplier
-      value: 0.75
-      objectReference: {fileID: 0}
     - target: {fileID: 6284154492045320528, guid: 15b97ccc526b9524e8c77f018e01c6db, type: 3}
       propertyPath: m_Name
       value: '[BEHAVIOR]'

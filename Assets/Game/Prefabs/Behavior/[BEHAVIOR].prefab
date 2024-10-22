@@ -45,6 +45,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   levelsConfig: {fileID: 11400000, guid: df87a13e3d160b94fbdfb54bc75eedc8, type: 2}
+  swapAnimConfig:
+    scaleInMultiplier: 0.75
+    scaleDuration: 0.1
+    moveDuration: 0.2
+  blocksToMatch: 3
+  gameEndDelay: 1
 --- !u!1 &6284154492045320528
 GameObject:
   m_ObjectHideFlags: 0

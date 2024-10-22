@@ -17,13 +17,13 @@ public class BlockView : DragView
     private bool _isBusy;
     private BlockType _type;
     private DestroyAnimBehavior _destroyAnimBehavior;
-
     private DestroyAnimBehavior DestroyAnimBehavior =>
         _destroyAnimBehavior ??= animator.GetBehaviour<DestroyAnimBehavior>();
     public BlockType GetBlockType => _isBusy ? BlockType.Empty : _type;
     public RectTransform View => view;
     public bool IsBusy => _isBusy;
     
+    public event Action OnBlockDestroy = delegate { };
 
     public void SetBusy(bool condition)
     {
@@ -54,5 +54,13 @@ public class BlockView : DragView
         SetType(BlockType.Empty);
         
         SetBusy(false);
+        
+        OnBlockDestroy.Invoke();
+    }
+
+    public void UnsubscribeEvents()
+    {
+        OnBlockDestroy = delegate { };
+        RemoveAllOnSwipeEvents();
     }
 }

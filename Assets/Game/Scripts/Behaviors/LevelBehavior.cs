@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -11,23 +12,29 @@ namespace Game.Scripts.Core
     {
         [SerializeField] private LevelsConfig levelsConfig;
         [SerializeField] private SwapAnimData swapAnimConfig;
+        [SerializeField] private int blocksToMatch;
+        [SerializeField] private int gameEndDelay;
 
         private GameScreen _gameScreen;
 
         private Dictionary<Vector2Int, BlockView> _currentMap = new();
 
+        private int currentLevelIndex = -1;
+
         protected override void OnInit(GameBehaviorData data)
         {
             _gameScreen = data.UI.GetScreen<GameScreen>();
 
-            LoadLevel(0);
+            LoadNextLevel();
         }
 
-        private void LoadLevel(int index)
+        private void LoadNextLevel()
         {
             UnloadCurrentLevel();
+            
+            currentLevelIndex++;
 
-            var levelData = levelsConfig.LevelDatas[index % levelsConfig.LevelDatas.Count];
+            var levelData = levelsConfig.LevelDatas[currentLevelIndex % levelsConfig.LevelDatas.Count];
 
             BlockType[,] mapData = new BlockType[levelData.MapSize.x, levelData.MapSize.y];
 
@@ -36,12 +43,13 @@ namespace Game.Scripts.Core
                 mapData[blockData.Position.x, blockData.Position.y] = blockData.Type;
             }
 
-            _gameScreen.SetupLevelText(index);
+            _gameScreen.SetupLevelText(currentLevelIndex);
             _currentMap = _gameScreen.CreateMap(mapData);
 
             foreach (var mapElement in _currentMap)
             {
                 mapElement.Value.OnSwipe += (dir) => OnBlockSwiped(dir, mapElement);
+                mapElement.Value.OnBlockDestroy += CheckEndGame;
             }
         }
 
@@ -49,15 +57,15 @@ namespace Game.Scripts.Core
         {
             var swipedBlockPos = swipedElement.Key;
             var swipedBlock = swipedElement.Value;
-            
-            
+
+
             var blockToSwapPos = swipedBlockPos + DirectionUtility.GetOffset(swipeDirection);
 
             if (_currentMap.TryGetValue(blockToSwapPos, out var blockToSwap))
             {
-                if(swipedBlock.IsBusy || blockToSwap.IsBusy)
+                if (swipedBlock.IsBusy || blockToSwap.IsBusy)
                     return;
-                
+
                 if (!(swipeDirection is Direction.Up && blockToSwap.GetBlockType is BlockType.Empty))
                 {
                     await DoBlocksSwap(swipedBlock, blockToSwap);
@@ -79,7 +87,7 @@ namespace Game.Scripts.Core
             var secondViewPos = second.View.position;
 
             var standardScale = first.View.localScale;
-            
+
             first.SetBusy(true);
             second.SetBusy(true);
 
@@ -134,7 +142,7 @@ namespace Game.Scripts.Core
             }
 
             await UniTask.WaitUntil(() => swapCompleted);
-            
+
             first.SetBusy(false);
             second.SetBusy(false);
         }
@@ -154,10 +162,10 @@ namespace Game.Scripts.Core
             await UniTask.WaitWhile(() => normalizeTasks.Any((task) => !task.GetAwaiter().IsCompleted));
         }
 
-        private void CheckMatches()
+        private async void CheckMatches()
         {
             List<Vector2Int> biggestMatchGroup = new();
-            
+
             foreach (var mapElement in _currentMap)
             {
                 List<Vector2Int> currentCheckedGroup = new();
@@ -169,27 +177,27 @@ namespace Game.Scripts.Core
                     biggestMatchGroup.AddRange(currentCheckedGroup);
                 }
             }
-            
-            if(biggestMatchGroup.Count < 3)
+
+            if (biggestMatchGroup.Count < blocksToMatch)
                 return;
             
             foreach (var groupElementPos in biggestMatchGroup)
             {
-                if(_currentMap.TryGetValue(groupElementPos, out var groupElement))
-                { 
+                if (_currentMap.TryGetValue(groupElementPos, out var groupElement))
+                {
                     groupElement.Destroy();
                 }
             }
-            
+
             CheckMatches();
         }
-        
+
 
         private void CollectNeighbors(Vector2Int checkedPos, ref List<Vector2Int> collectList)
         {
             if (_currentMap.TryGetValue(checkedPos, out var checkedElement))
             {
-                if(checkedElement.GetBlockType is BlockType.Empty)
+                if (checkedElement.GetBlockType is BlockType.Empty)
                     return;
 
                 foreach (var direction in DirectionUtility.AllDirections)
@@ -261,14 +269,26 @@ namespace Game.Scripts.Core
             }
         }
 
+        private async void CheckEndGame()
+        {
+            var isMapEmpty = _currentMap.All(mapElement =>
+                mapElement.Value.GetBlockType is BlockType.Empty && !mapElement.Value.IsBusy);
+
+            if (isMapEmpty)
+            {
+                await UniTask.Delay(TimeSpan.FromSeconds(gameEndDelay));
+                LoadNextLevel();
+            }
+        }
+
         private void UnloadCurrentLevel()
         {
             foreach (var pair in _currentMap)
             {
                 if (pair.Value != null)
                 {
-                    pair.Value.RemoveAllOnSwipeEvents();
-                    Destroy(pair.Value);
+                    pair.Value.UnsubscribeEvents();
+                    Destroy(pair.Value.gameObject);
                 }
             }
 
