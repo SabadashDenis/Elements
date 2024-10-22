@@ -69,7 +69,6 @@ namespace Game.Scripts.Core
                 if (!(swipeDirection is Direction.Up && blockToSwap.GetBlockType is BlockType.Empty))
                 {
                     await DoBlocksSwap(swipedBlock, blockToSwap);
-                    await NormalizeMap();
                     CheckMatches();
                 }
             }
@@ -164,10 +163,15 @@ namespace Game.Scripts.Core
 
         private async void CheckMatches()
         {
+            await NormalizeMap();
+            
             List<Vector2Int> biggestMatchGroup = new();
 
             foreach (var mapElement in _currentMap)
             {
+                if(!HasThreeInRow(mapElement.Key))
+                    continue;
+                
                 List<Vector2Int> currentCheckedGroup = new();
                 CollectNeighbors(mapElement.Key, ref currentCheckedGroup);
 
@@ -180,18 +184,37 @@ namespace Game.Scripts.Core
 
             if (biggestMatchGroup.Count < blocksToMatch)
                 return;
+
+            List<UniTask> destroyTasks = new();
             
             foreach (var groupElementPos in biggestMatchGroup)
             {
                 if (_currentMap.TryGetValue(groupElementPos, out var groupElement))
                 {
-                    groupElement.Destroy();
+                    destroyTasks.Add(groupElement.Destroy());
                 }
             }
 
             CheckMatches();
         }
 
+        private bool HasThreeInRow(Vector2Int checkedPos)
+        {
+            _currentMap.TryGetValue(checkedPos, out var target);
+            
+            _currentMap.TryGetValue(checkedPos + DirectionUtility.GetOffset(Direction.Up), out var top);
+            _currentMap.TryGetValue(checkedPos + DirectionUtility.GetOffset(Direction.Down), out var bottom);
+            _currentMap.TryGetValue(checkedPos + DirectionUtility.GetOffset(Direction.Left), out var left);
+            _currentMap.TryGetValue(checkedPos + DirectionUtility.GetOffset(Direction.Right), out var right);
+
+            var topMatch = target?.GetBlockType == top?.GetBlockType;
+            var bottomMatch = target?.GetBlockType == bottom?.GetBlockType;
+            var leftMatch = target?.GetBlockType == left?.GetBlockType;
+            var rightMatch = target?.GetBlockType == right?.GetBlockType;
+
+            return ((topMatch && bottomMatch) || (leftMatch && rightMatch));
+        }
+        
 
         private void CollectNeighbors(Vector2Int checkedPos, ref List<Vector2Int> collectList)
         {
