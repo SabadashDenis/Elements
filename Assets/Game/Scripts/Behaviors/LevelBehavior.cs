@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Game.Scripts.Data;
@@ -20,6 +21,8 @@ namespace Game.Scripts.Core
         private Dictionary<Vector2Int, BlockView> _currentMap = new();
 
         private int _currentLevelIndex = 0;
+
+        private CancellationTokenSource _cancellationTokenSource = new();
         
         public LevelData GetMapState
         {
@@ -331,7 +334,7 @@ namespace Game.Scripts.Core
 
             if (isMapEmpty)
             {
-                await UniTask.Delay(TimeSpan.FromSeconds(gameEndDelay));
+                await UniTask.Delay(TimeSpan.FromSeconds(gameEndDelay), cancellationToken: _cancellationTokenSource.Token);
                 _currentLevelIndex++;
                 LoadLevel(_currentLevelIndex);
             }
@@ -339,6 +342,9 @@ namespace Game.Scripts.Core
 
         private void UnloadCurrentLevel()
         {
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource = new();
+            
             foreach (var pair in _currentMap)
             {
                 if (pair.Value != null)
