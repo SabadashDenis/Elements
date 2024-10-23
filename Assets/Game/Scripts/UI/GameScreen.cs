@@ -17,9 +17,12 @@ namespace Game.Scripts.Core
         [SerializeField] private TMP_Text levelText;
         [SerializeField] private Transform swapContainer;
         [SerializeField] private ClickableView restartBtn;
+        [SerializeField] private BalloonContainer balloonContainer;
 
         public Transform SwapContainer => swapContainer;
         public IClickableView RestartBtn => restartBtn;
+        public BalloonContainer BalloonContainer => balloonContainer;
+
 
         public Dictionary<Vector2Int, BlockView> CreateMap(BlockType[,] mapData)
         {
