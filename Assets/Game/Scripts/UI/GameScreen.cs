@@ -26,9 +26,9 @@ namespace Game.Scripts.Core
         public BalloonContainer BalloonContainer => balloonContainer;
 
 
-        public Dictionary<Vector2Int, BlockView> CreateMap(BlockType[,] mapData)
+        public LevelMapData CreateMap(BlockType[,] mapData)
         {
-            Dictionary<Vector2Int, BlockView> mapDictionary = new();
+            List<LevelElementData> levelElementDatas = new();
 
             var mapXSize = mapData.GetLength(0);
             var mapYSize = mapData.GetLength(1);
@@ -42,11 +42,11 @@ namespace Game.Scripts.Core
                 {
                     var newBlockView = Instantiate(blockViewPrefab, blocksGrid.transform);
                     newBlockView.SetType(mapData[j, i]);
-                    mapDictionary.Add(new Vector2Int(i, j), newBlockView);
+                    levelElementDatas.Add( new LevelElementData(new Vector2Int(i, j), newBlockView));
                 }
             }
 
-            return mapDictionary;
+            return new LevelMapData(levelElementDatas);
         }
 
         public void SetupLevelText(int levelArrayIndex)

@@ -1,38 +1,13 @@
+using System.Threading;
+
 namespace Game.Scripts.Core
 {
-    public class GameBehaviorBase : InitableBehaviorBase<GameBehaviorData>, IGameBehavior
+    public class GameBehaviorBase : InitableBehaviorBase<GameBehaviorData>
     {
-
-        public void DoUpdate()
-        {
-            if (IsInitialized)
-            {
-                OnUpdate();
-            }
-        }
-
-        public void DoFixedUpdate()
-        {
-            if (IsInitialized)
-            {
-                OnFixedUpdate();
-            }
-        }
-
-        public void DoLateUpdate()
-        {
-            if (IsInitialized)
-            {
-                OnLateUpdate();
-            }
-        }
+        protected CancellationTokenSource _tokenSource = new();
+        public CancellationToken Token => _tokenSource.Token;
+        public GameBehaviorData BehaviorData => Data;
         
-        
-        public virtual void OnUpdate() { }
-
-        public virtual void OnFixedUpdate() { }
-
-        public virtual void OnLateUpdate() { }
         protected override void OnInit(GameBehaviorData data) { }
     }
 
