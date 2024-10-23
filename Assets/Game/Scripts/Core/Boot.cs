@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Game.Scripts.Core
@@ -14,7 +15,15 @@ namespace Game.Scripts.Core
             systemContainer.Init(new SystemContainerData(uiSystem, gameBehaviorSystem, saveSystem));
         }
 
-        private void OnDestroy()
+        private void OnApplicationPause(bool pauseStatus)
+        {
+            if (pauseStatus)
+            {
+                saveSystem.Save();
+            }
+        }
+
+        private void OnApplicationQuit()
         {
             saveSystem.Save();
         }
