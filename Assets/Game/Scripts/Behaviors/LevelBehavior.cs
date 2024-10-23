@@ -13,8 +13,6 @@ namespace Game.Scripts.Core
     {
         [SerializeField] private LevelsConfig levelsConfig;
         [SerializeField] private SwapAnimData swapAnimConfig;
-        [SerializeField] private int blocksToMatch;
-        [SerializeField] private int gameEndDelay;
 
         private GameScreen _gameScreen;
 
@@ -48,6 +46,11 @@ namespace Game.Scripts.Core
             _gameScreen = data.UI.GetScreen<GameScreen>();
 
             _gameScreen.RestartBtn.OnClickEvent += () => LoadLevel(_currentLevelIndex);
+            _gameScreen.NextLevelBtn.OnClickEvent += () =>
+            {
+                _currentLevelIndex++;
+                LoadLevel(_currentLevelIndex);
+            };
             
             LoadLevel(_currentLevelIndex, Data.Save.GetCurrentSave);
         }
@@ -173,14 +176,19 @@ namespace Game.Scripts.Core
                 second.View.anchoredPosition = Vector2.zero;
             }
 
-            await UniTask.WaitUntil(() => swapCompleted);
+            await UniTask.WaitUntil(() => swapCompleted, cancellationToken: _cancellationTokenSource.Token);
 
+            if(_cancellationTokenSource.IsCancellationRequested)
+                return;
+            
             first.SetBusy(false);
             second.SetBusy(false);
         }
 
-        private async UniTask NormalizeMap()
+        private async UniTask<bool> NormalizeMap()
         {
+            bool isNormalized = false;
+            
             List<UniTask> normalizeTasks = new();
 
             foreach (var mapElement in _currentMap)
@@ -191,13 +199,19 @@ namespace Game.Scripts.Core
                 }
             }
 
-            await UniTask.WaitWhile(() => normalizeTasks.Any((task) => !task.GetAwaiter().IsCompleted));
+            if (normalizeTasks.Count == 0)
+                isNormalized = true;
+            
+            await UniTask.WaitWhile(() => normalizeTasks.Any((task) => !task.GetAwaiter().IsCompleted),
+                cancellationToken: _cancellationTokenSource.Token);
+
+            return isNormalized;
         }
 
-        private async void CheckMatches()
+        private async UniTaskVoid CheckMatches()
         {
-            await NormalizeMap();
-            
+            var isMapNormalized = await NormalizeMap();
+
             List<Vector2Int> biggestMatchGroup = new();
 
             foreach (var mapElement in _currentMap)
@@ -215,22 +229,23 @@ namespace Game.Scripts.Core
                 }
             }
 
-            if (biggestMatchGroup.Count < blocksToMatch)
-                return;
-
             List<UniTask> destroyTasks = new();
             
             foreach (var groupElementPos in biggestMatchGroup)
             {
                 if (_currentMap.TryGetValue(groupElementPos, out var groupElement))
                 {
-                    destroyTasks.Add(groupElement.Destroy());
+                    destroyTasks.Add(groupElement.Destroy(_cancellationTokenSource.Token));
                 }
             }
+            
+            if(isMapNormalized && destroyTasks.Count == 0)
+                return;
 
-            await UniTask.WaitWhile(() => destroyTasks.Any(task => !task.GetAwaiter().IsCompleted));
+            await UniTask.WaitWhile(() => destroyTasks.Any(task => !task.GetAwaiter().IsCompleted),
+                cancellationToken: _cancellationTokenSource.Token);
 
-            CheckMatches();
+            CheckMatches().Forget();
         }
 
         private bool HasThreeInRow(Vector2Int checkedPos)
@@ -327,14 +342,13 @@ namespace Game.Scripts.Core
             }
         }
 
-        private async void CheckEndGame()
+        private void CheckEndGame()
         {
             var isMapEmpty = _currentMap.All(mapElement =>
                 mapElement.Value.GetBlockType is BlockType.Empty && !mapElement.Value.IsBusy);
 
             if (isMapEmpty)
             {
-                await UniTask.Delay(TimeSpan.FromSeconds(gameEndDelay), cancellationToken: _cancellationTokenSource.Token);
                 _currentLevelIndex++;
                 LoadLevel(_currentLevelIndex);
             }

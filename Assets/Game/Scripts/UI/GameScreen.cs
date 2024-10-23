@@ -17,10 +17,12 @@ namespace Game.Scripts.Core
         [SerializeField] private TMP_Text levelText;
         [SerializeField] private Transform swapContainer;
         [SerializeField] private ClickableView restartBtn;
+        [SerializeField] private ClickableView nextLevelBtn;
         [SerializeField] private BalloonContainer balloonContainer;
 
         public Transform SwapContainer => swapContainer;
         public IClickableView RestartBtn => restartBtn;
+        public IClickableView NextLevelBtn => nextLevelBtn;
         public BalloonContainer BalloonContainer => balloonContainer;
 
 

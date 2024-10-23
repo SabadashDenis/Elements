@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Game.Scripts.Core;
 using Game.Scripts.Data;
@@ -43,14 +44,14 @@ public class BlockView : DragView
         IsInteractable = isVisible;
     }
 
-    public async UniTask Destroy()
+    public async UniTask Destroy(CancellationToken token)
     {
         SetBusy(true);
         
         animator.Play("Destroy");
         animator.Update(0);
         
-        await UniTask.Delay(TimeSpan.FromSeconds(DestroyAnimBehavior.DestroyAnimDuration));
+        await UniTask.Delay(TimeSpan.FromSeconds(DestroyAnimBehavior.DestroyAnimDuration), cancellationToken: token);
         SetType(BlockType.Empty);
         
         SetBusy(false);
