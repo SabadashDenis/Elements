@@ -16,8 +16,10 @@ namespace Game.Scripts.Core
         [SerializeField] private BlockView blockViewPrefab;
         [SerializeField] private TMP_Text levelText;
         [SerializeField] private Transform swapContainer;
+        [SerializeField] private ClickableView restartBtn;
 
         public Transform SwapContainer => swapContainer;
+        public IClickableView RestartBtn => restartBtn;
 
         public Dictionary<Vector2Int, BlockView> CreateMap(BlockType[,] mapData)
         {

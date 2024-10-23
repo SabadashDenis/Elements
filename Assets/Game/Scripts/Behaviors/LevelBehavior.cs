@@ -19,22 +19,22 @@ namespace Game.Scripts.Core
 
         private Dictionary<Vector2Int, BlockView> _currentMap = new();
 
-        private int currentLevelIndex = -1;
+        private int currentLevelIndex = 0;
 
         protected override void OnInit(GameBehaviorData data)
         {
             _gameScreen = data.UI.GetScreen<GameScreen>();
 
-            LoadNextLevel();
+            _gameScreen.RestartBtn.OnClickEvent += () => LoadLevel(currentLevelIndex);
+            
+            LoadLevel(currentLevelIndex);
         }
 
-        private void LoadNextLevel()
+        private void LoadLevel(int index)
         {
             UnloadCurrentLevel();
-            
-            currentLevelIndex++;
 
-            var levelData = levelsConfig.LevelDatas[currentLevelIndex % levelsConfig.LevelDatas.Count];
+            var levelData = levelsConfig.LevelDatas[index % levelsConfig.LevelDatas.Count];
 
             BlockType[,] mapData = new BlockType[levelData.MapSize.x, levelData.MapSize.y];
 
@@ -43,7 +43,7 @@ namespace Game.Scripts.Core
                 mapData[blockData.Position.x, blockData.Position.y] = blockData.Type;
             }
 
-            _gameScreen.SetupLevelText(currentLevelIndex);
+            _gameScreen.SetupLevelText(index);
             _currentMap = _gameScreen.CreateMap(mapData);
 
             foreach (var mapElement in _currentMap)
@@ -302,7 +302,8 @@ namespace Game.Scripts.Core
             if (isMapEmpty)
             {
                 await UniTask.Delay(TimeSpan.FromSeconds(gameEndDelay));
-                LoadNextLevel();
+                currentLevelIndex++;
+                LoadLevel(currentLevelIndex);
             }
         }
 

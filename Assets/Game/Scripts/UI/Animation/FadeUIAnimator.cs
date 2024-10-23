@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.Scripts.Core
 {
-    [CreateAssetMenu(fileName = "FadeUIAnimator", menuName = "Game/UIAnimator")]
+    [CreateAssetMenu(fileName = "FadeUIAnimator", menuName = "Game/UIAnimator/FadeUIAnimator")]
     public class FadeUIAnimator : BaseUIAnimator
     {
         [SerializeField] private float delay = 0f;
