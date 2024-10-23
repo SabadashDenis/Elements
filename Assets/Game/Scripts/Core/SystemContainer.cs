@@ -11,7 +11,7 @@ namespace Game.Scripts.Core
         {
             var systems = GetComponentsInChildren<SystemBase>(true);
 
-            var systemData = new SystemData(this, data.UI, data.GameBehavior);
+            var systemData = new SystemData(this);
             
             foreach (var system in systems)
             {

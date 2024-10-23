@@ -39,10 +39,12 @@ namespace Game.Scripts.Core
     public struct GameBehaviorData
     {
         public readonly UISystem UI;
+        public readonly SaveSystem Save;
 
-        public GameBehaviorData(UISystem ui)
+        public GameBehaviorData(UISystem ui, SaveSystem save)
         {
             UI = ui;
+            Save = save;
         }
     }
 }

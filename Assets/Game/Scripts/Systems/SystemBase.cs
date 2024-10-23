@@ -31,17 +31,12 @@ namespace Game.Scripts.Core
     {
         private readonly SystemContainer _container;
         
-        public readonly UISystem UI;
-        public readonly GameBehaviorSystem GameBehavior;
-
         public TSystem GetSystem<TSystem>()
             where TSystem : SystemBase => _container.Get<TSystem>();
         
-        public SystemData(SystemContainer container, UISystem ui, GameBehaviorSystem gameBehavior)
+        public SystemData(SystemContainer container)
         {
             _container = container;
-            UI = ui;
-            GameBehavior = gameBehavior;
         }
     }
 }

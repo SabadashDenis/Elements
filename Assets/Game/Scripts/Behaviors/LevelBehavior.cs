@@ -19,22 +19,52 @@ namespace Game.Scripts.Core
 
         private Dictionary<Vector2Int, BlockView> _currentMap = new();
 
-        private int currentLevelIndex = 0;
+        private int _currentLevelIndex = 0;
+        
+        public LevelData GetMapState
+        {
+            get
+            {
+                var mapSize = levelsConfig.LevelDatas[_currentLevelIndex % levelsConfig.LevelDatas.Count].MapSize;
+                List<BlockData> blockDatas = new();
+
+                foreach (var mapElement in _currentMap)
+                {
+                    var blockData = new BlockData(mapElement.Value.GetBlockType,
+                        new Vector2Int(mapElement.Key.y, mapElement.Key.x));
+                    blockDatas.Add(blockData);
+                }
+                return new LevelData(mapSize, blockDatas);
+            }
+        }
+
+        public int CurrentLevelIndex => _currentLevelIndex;
 
         protected override void OnInit(GameBehaviorData data)
         {
             _gameScreen = data.UI.GetScreen<GameScreen>();
 
-            _gameScreen.RestartBtn.OnClickEvent += () => LoadLevel(currentLevelIndex);
+            _gameScreen.RestartBtn.OnClickEvent += () => LoadLevel(_currentLevelIndex);
             
-            LoadLevel(currentLevelIndex);
+            LoadLevel(_currentLevelIndex, Data.Save.GetCurrentSave);
         }
 
-        private void LoadLevel(int index)
+        private void LoadLevel(int index, SaveData saveData = null)
         {
             UnloadCurrentLevel();
+            
+            LevelData levelData = new LevelData();
 
-            var levelData = levelsConfig.LevelDatas[index % levelsConfig.LevelDatas.Count];
+            if (saveData != null)
+            {
+                levelData = saveData.MapState;
+                index = saveData.LevelIndex;
+                _currentLevelIndex = index;
+            }
+            else
+            {
+                levelData = levelsConfig.LevelDatas[index % levelsConfig.LevelDatas.Count];
+            }
 
             BlockType[,] mapData = new BlockType[levelData.MapSize.x, levelData.MapSize.y];
 
@@ -302,8 +332,8 @@ namespace Game.Scripts.Core
             if (isMapEmpty)
             {
                 await UniTask.Delay(TimeSpan.FromSeconds(gameEndDelay));
-                currentLevelIndex++;
-                LoadLevel(currentLevelIndex);
+                _currentLevelIndex++;
+                LoadLevel(_currentLevelIndex);
             }
         }
 
