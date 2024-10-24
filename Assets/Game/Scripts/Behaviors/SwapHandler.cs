@@ -23,15 +23,13 @@ namespace Game.Scripts.Core
 
         private async void OnBlockSwiped(Direction swipeDirection, Vector2Int swipedElementPos)
         {
-            Debug.Log("OnSwipe");
             if (CanBeSwapped(swipeDirection, swipedElementPos, out var swapTargetPos))
             {
                 if (Data.HandlerData.LevelElements.TryGetValue(swipedElementPos, out var swipedBlock))
                 {
                     if (Data.HandlerData.LevelElements.TryGetValue(swapTargetPos, out var targetBlock))
                     {
-                        Debug.Log($"Can be swiped {swapTargetPos} {targetBlock.IsBusy}");
-                        
+
                         var targetBlockType = targetBlock.GetBlockType;
                         
                         if(targetBlockType is BlockType.Empty)
