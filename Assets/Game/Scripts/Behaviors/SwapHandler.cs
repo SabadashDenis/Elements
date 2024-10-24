@@ -25,13 +25,41 @@ namespace Game.Scripts.Core
         {
             if (CanBeSwapped(swipeDirection, swipedElementPos, out var swapTargetPos))
             {
-                Data.HandlerData.LevelElements.TryGetValue(swipedElementPos, out var first);
-                Data.HandlerData.LevelElements.TryGetValue(swapTargetPos, out var second);
-                
-                await DoBlocksSwap(first, second);
-                OnSwapReleased.Invoke();
+                if (Data.HandlerData.LevelElements.TryGetValue(swipedElementPos, out var swipedBlock))
+                {
+                    if (Data.HandlerData.LevelElements.TryGetValue(swapTargetPos, out var targetBlock))
+                    {
+                        var targetBlockType = targetBlock.GetBlockType;
+                        
+                        if(targetBlockType is BlockType.Empty)
+                            SetBusyTopBlocks(swipedElementPos, true);
+                        
+                        await DoBlocksSwap(swipedBlock, targetBlock);
+                        
+                        if(targetBlockType is BlockType.Empty)
+                            SetBusyTopBlocks(swipedElementPos, false);
+                        
+                        OnSwapReleased.Invoke();
+                    }
+                }
             }
         }
+
+        private void SetBusyTopBlocks(Vector2Int swipedElementPos, bool isBusy)
+        {
+            var xPos = swipedElementPos.x;
+            var maxY = Data.HandlerData.MapSize.y;
+
+            for (int yPos = swipedElementPos.y; yPos < maxY; yPos++)
+            {
+                var topBlockPos = new Vector2Int(xPos, yPos);
+                if (Data.HandlerData.LevelElements.TryGetValue(topBlockPos, out var topBlockView))
+                {
+                    topBlockView.SetBusy(isBusy);
+                }
+            }
+        }
+        
 
         private bool CanBeSwapped(Direction swipeDirection, Vector2Int swipedElementPos, out Vector2Int swapTargetPos)
         {
@@ -41,8 +69,9 @@ namespace Game.Scripts.Core
             {
                 if (Data.HandlerData.LevelElements.TryGetValue(swipedElementPos, out var swipedBlock))
                 {
+                    var swipedIsEmpty = swipedBlock.GetBlockType is BlockType.Empty;
                     var swipeToJump = swipeDirection is Direction.Up && swapTarget.GetBlockType is BlockType.Empty;
-                    return !(swipedBlock.IsBusy || swapTarget.IsBusy) && !swipeToJump;
+                    return !(swipedBlock.IsBusy || swapTarget.IsBusy) && !swipeToJump && !swipedIsEmpty;
                 }
             }
 
@@ -104,7 +133,7 @@ namespace Game.Scripts.Core
             first.SetBusy(false);
             second.SetBusy(false);
         }
-        
+
         public override void UnsubscribeEvents()
         {
             OnSwapReleased = delegate { };

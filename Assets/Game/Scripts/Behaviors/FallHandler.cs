@@ -58,7 +58,7 @@ namespace Game.Scripts.Core
 
             if (Data.HandlerData.LevelElements.TryGetValue(elementPos, out var elementView))
             {
-                if (elementView.GetBlockType is BlockType.Empty)
+                if (elementView.GetBlockType is BlockType.Empty || elementView.IsBusy)
                     return false;
                 
                 for (int i = 0; i < elementPos.y; i++)
@@ -67,7 +67,7 @@ namespace Game.Scripts.Core
                     
                     if (Data.HandlerData.LevelElements.TryGetValue(bottomElementPos, out var bottomElementView))
                     {
-                        if (bottomElementView.GetBlockType is BlockType.Empty)
+                        if (bottomElementView.GetBlockType is BlockType.Empty && !bottomElementView.IsBusy)
                         {
                             cellsToFall++;
                             canFall = true;
@@ -136,7 +136,7 @@ namespace Game.Scripts.Core
                     
                     fallingBlockView.SetBusy(true);
                     targetBlockView.SetBusy(true);
-                    
+
                     DOTween.Sequence()
                         .Join(fallingBlockView.View.DOScale(standardViewScale * 0.75f,
                             0.2f))

@@ -45,7 +45,7 @@ namespace Game.Scripts.Core
         {
             if (Data.HandlerData.LevelElements.TryGetValue(checkedPos, out var checkedElement))
             {
-                if (checkedElement.GetBlockType is BlockType.Empty)
+                if (checkedElement.GetBlockType is BlockType.Empty || checkedElement.IsBusy)
                     return;
 
                 foreach (var direction in DirectionUtility.AllDirections)
@@ -107,7 +107,9 @@ namespace Game.Scripts.Core
                     
                     if (Data.HandlerData.LevelElements.TryGetValue(neighborPos, out var neighborBlockView))
                     {
-                        if (neighborBlockView.GetBlockType is BlockType.Empty || checkedBlockView.IsBusy)
+                        var anyIsBusy = checkedBlockView.IsBusy || neighborBlockView.IsBusy;
+                        
+                        if (neighborBlockView.GetBlockType is BlockType.Empty || anyIsBusy)
                             return false;
                         
                         hasMatch &= neighborBlockView.GetBlockType == checkedBlockView.GetBlockType;
