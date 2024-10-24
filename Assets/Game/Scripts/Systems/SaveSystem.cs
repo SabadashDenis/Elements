@@ -6,23 +6,22 @@ namespace Game.Scripts.Core
 {
     public class SaveSystem : SystemBase
     {
-        private SaveData _currentSave;
-        public SaveData GetCurrentSave => _currentSave;
+        public static SaveData GetCurrentSave => LoadSave();
 
-        protected override void OnInit()
-        {
-            _currentSave = LoadSave();
-        }
-
+        protected override void OnInit() { }
+        
         public void Save()
         {
             SaveData saveData = Data.GetSystem<GameBehaviorSystem>().GetSaveData;
-            
-            string json = JsonUtility.ToJson(saveData);
-            PlayerPrefs.SetString("Save", json);
+
+            if (saveData != null)
+            {
+                string json = JsonUtility.ToJson(saveData);
+                PlayerPrefs.SetString("Save", json);
+            }
         }
 
-        private SaveData LoadSave()
+        private static SaveData LoadSave()
         {
             if (PlayerPrefs.HasKey("Save"))
             {

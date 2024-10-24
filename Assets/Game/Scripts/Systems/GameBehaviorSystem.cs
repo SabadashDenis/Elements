@@ -6,20 +6,24 @@ namespace Game.Scripts.Core
 {
     public class GameBehaviorSystem : SystemBase
     {
-        [SerializeField] private List<GameBehaviorBase> behaviorList;
+        [SerializeField] private List<GameBehaviorBase> behaviorList = new();
 
         public SaveData GetSaveData
         {
             get
             {
-                var resultSaveData = new SaveData();
+                var levelBehavior = GetBehavior<LevelBehavior>();
 
-                var levelBehavior = behaviorList.FirstOrDefault((behavior => behavior is LevelBehavior)) as LevelBehavior;
+                if (levelBehavior != null)
+                {
+                    return new SaveData
+                    {
+                        MapState = levelBehavior.GetMapState,
+                        LevelIndex = levelBehavior.GetCurrentLevelIndex
+                    };
+                }
 
-                resultSaveData.MapState = levelBehavior.GetMapState;
-                resultSaveData.LevelIndex = levelBehavior.CurrentLevelIndex;
-
-                return resultSaveData;
+                return null;
             }
         }
 
@@ -29,6 +33,19 @@ namespace Game.Scripts.Core
             {
                 gameBehavior.Init(new GameBehaviorData(Data.GetSystem<UISystem>(), Data.GetSystem<SaveSystem>()));
             }
+        }
+
+        private TBehavior GetBehavior<TBehavior>() where TBehavior : GameBehaviorBase
+        {
+            foreach (var behavior in behaviorList)
+            {
+                if (behavior is TBehavior tBehavior)
+                {
+                    return tBehavior;
+                }
+            }
+
+            return null;
         }
     }
 }
