@@ -38,10 +38,6 @@ namespace Game.Scripts.Core
             }
         }
 
-        protected override void OnBeforeHandle()
-        {
-        }
-
         public void LoadLevelInitial() => LoadLevel(_currentLevelIndex, true);
 
         public void LoadNextLevel() => LoadLevel(++_currentLevelIndex);

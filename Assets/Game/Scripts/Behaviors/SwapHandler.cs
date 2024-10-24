@@ -13,7 +13,7 @@ namespace Game.Scripts.Core
 
         public event Action OnSwapReleased = delegate { };
 
-        protected override void OnBeforeHandle()
+        protected override void OnInit(HandlerDataContainer<LevelMapData, CancellationTokenSource> dataContainer)
         {
             foreach (var levelElementData in Data.HandlerData.LevelElements)
             {

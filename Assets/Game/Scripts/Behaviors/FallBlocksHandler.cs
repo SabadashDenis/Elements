@@ -10,10 +10,6 @@ namespace Game.Scripts.Core
 {
     public class FallBlocksHandler : HandlerBase<LevelMapData, CancellationTokenSource>
     {
-        protected override void OnBeforeHandle()
-        {
-        }
-
         public void StartFallRoutine()
         {
             FallAllBlocksRoutine();
