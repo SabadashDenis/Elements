@@ -8,12 +8,9 @@ namespace Game.Scripts.Core
         protected override void OnInit(HandlerDataContainer<T, T1> dataContainer)
         {
             OnBeforeHandle();
-            //HandleRoutine();
         }
 
         protected abstract void OnBeforeHandle();
-
-        //protected abstract UniTask HandleRoutine();
     }
 
     public class HandlerDataContainer<T,T1>

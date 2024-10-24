@@ -4,10 +4,12 @@ using UnityEngine;
 
 namespace Game.Scripts.Core
 {
-    public struct LevelMapData
+    public class LevelMapData
     {
-        public readonly List<LevelElementData> LevelElements;
+        public readonly List<LevelElementData> LevelElements = new ();
 
+        public LevelMapData() { }
+        
         public LevelMapData(List<LevelElementData> levelElements)
         {
             LevelElements = levelElements;

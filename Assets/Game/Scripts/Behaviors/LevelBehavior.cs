@@ -6,38 +6,22 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Game.Scripts.Data;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Scripts.Core
 {
     public class LevelBehavior : GameBehaviorBase
     {
-        [SerializeField] private LevelsConfig levelsConfig;
         [SerializeField] private SwapHandler swapHandler;
+        [SerializeField] private LevelHandler levelHandler;
 
         private GameScreen _gameScreen;
-
-        private LevelMapData _currentMap = new (new List<LevelElementData>());
 
         private int _currentLevelIndex = 0;
 
         private CancellationTokenSource _cancellationTokenSource = new();
-        
-        public LevelData GetMapState
-        {
-            get
-            {
-                var mapSize = levelsConfig.LevelDatas[_currentLevelIndex % levelsConfig.LevelDatas.Count].MapSize;
-                List<BlockData> blockDatas = new();
 
-                foreach (var mapElement in _currentMap.LevelElements)
-                {
-                    var blockData = new BlockData(mapElement.ElementView.GetBlockType,
-                        new Vector2Int(mapElement.ElementPos.y, mapElement.ElementPos.x));
-                    blockDatas.Add(blockData);
-                }
-                return new LevelData(mapSize, blockDatas);
-            }
-        }
+        public LevelData GetMapState => levelHandler.GetMapState;
 
         public int CurrentLevelIndex => _currentLevelIndex;
 
@@ -45,23 +29,47 @@ namespace Game.Scripts.Core
         {
             _gameScreen = data.UI.GetScreen<GameScreen>();
             
-            
-            _gameScreen.RestartBtn.OnClickEvent += () => LoadLevel(_currentLevelIndex);
+            /*_gameScreen.RestartBtn.OnClickEvent += () => LoadLevel(_currentLevelIndex);
             _gameScreen.NextLevelBtn.OnClickEvent += () =>
             {
                 _currentLevelIndex++;
                 LoadLevel(_currentLevelIndex);
-            };
-
-            LoadLevel(_currentLevelIndex, Data.Save.GetCurrentSave);
+            };*/
             
-            swapHandler.Init(new(_currentMap, _cancellationTokenSource));
+            //LoadLevel(_currentLevelIndex, SaveSystem.GetCurrentSave);
+
+            ConnectLoadLevelHandler();
+            
+            levelHandler.LoadLevelInitial();
+            
+            _gameScreen.RestartBtn.OnClickEvent += levelHandler.RestartLevel;
+            _gameScreen.NextLevelBtn.OnClickEvent += levelHandler.LoadNextLevel;
         }
 
-        private void LoadLevel(int index, SaveData saveData = null)
+        private void ConnectLoadLevelHandler()
+        {
+            levelHandler.Init(new(_gameScreen, _cancellationTokenSource));
+
+            levelHandler.OnLevelUnload += StopAllRoutines;
+            levelHandler.OnLevelLoaded += ConnectSwapHandler;
+        }
+
+        private void ConnectSwapHandler(LevelMapData levelMapData)
+        {
+            swapHandler.Init(new(levelMapData, _cancellationTokenSource));
+        }
+
+        private void StopAllRoutines()
+        {
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource = new();
+        }
+
+
+        /*private void LoadLevel(int index, SaveData saveData = null)
         {
             UnloadCurrentLevel();
-            
+
             LevelData levelData = new LevelData();
 
             if (saveData != null)
@@ -90,7 +98,7 @@ namespace Game.Scripts.Core
                 //mapElement.Value.OnSwipe += (dir) => OnBlockSwiped(dir, mapElement);
                 mapElement.ElementView.OnBlockDestroy += CheckEndGame;
             }
-        }
+        }*/
 
         /*private async void OnBlockSwiped(Direction swipeDirection, KeyValuePair<Vector2Int, BlockView> swipedElement)
         {
@@ -190,10 +198,10 @@ namespace Game.Scripts.Core
         private async UniTask<bool> NormalizeMap()
         {
             bool isNormalized = false;
-            
+
             List<UniTask> normalizeTasks = new();
 
-            foreach (var mapElement in _currentMap.LevelElements)
+            foreach (var mapElement in levelHandler.CurrentMap.LevelElements)
             {
                 if (mapElement.ElementView.GetBlockType is not BlockType.Empty)
                 {
@@ -203,7 +211,7 @@ namespace Game.Scripts.Core
 
             if (normalizeTasks.Count == 0)
                 isNormalized = true;
-            
+
             await UniTask.WaitWhile(() => normalizeTasks.Any((task) => !task.GetAwaiter().IsCompleted),
                 cancellationToken: _cancellationTokenSource.Token);
 
@@ -216,11 +224,11 @@ namespace Game.Scripts.Core
 
             List<Vector2Int> biggestMatchGroup = new();
 
-            foreach (var mapElement in _currentMap.LevelElements)
+            foreach (var mapElement in levelHandler.CurrentMap.LevelElements)
             {
-                if(!HasThreeInRow(mapElement.ElementPos))
+                if (!HasThreeInRow(mapElement.ElementPos))
                     continue;
-                
+
                 List<Vector2Int> currentCheckedGroup = new();
                 CollectNeighbors(mapElement.ElementPos, ref currentCheckedGroup);
 
@@ -232,16 +240,16 @@ namespace Game.Scripts.Core
             }
 
             List<UniTask> destroyTasks = new();
-            
+
             foreach (var groupElementPos in biggestMatchGroup)
             {
-                if (_currentMap.TryGetElementData(groupElementPos, out var groupElement))
+                if (levelHandler.CurrentMap.TryGetElementData(groupElementPos, out var groupElement))
                 {
                     destroyTasks.Add(groupElement.ElementView.Destroy(_cancellationTokenSource.Token));
                 }
             }
-            
-            if(isMapNormalized && destroyTasks.Count == 0)
+
+            if (isMapNormalized && destroyTasks.Count == 0)
                 return;
 
             await UniTask.WaitWhile(() => destroyTasks.Any(task => !task.GetAwaiter().IsCompleted),
@@ -252,12 +260,12 @@ namespace Game.Scripts.Core
 
         private bool HasThreeInRow(Vector2Int checkedPos)
         {
-            _currentMap.TryGetElementData(checkedPos, out var target);
-            
-            _currentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Up), out var top);
-            _currentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Down), out var bottom);
-            _currentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Left), out var left);
-            _currentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Right), out var right);
+            levelHandler.CurrentMap.TryGetElementData(checkedPos, out var target);
+
+            levelHandler.CurrentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Up), out var top);
+            levelHandler.CurrentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Down), out var bottom);
+            levelHandler.CurrentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Left), out var left);
+            levelHandler.CurrentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Right), out var right);
 
             var topMatch = target.ElementView?.GetBlockType == top.ElementView?.GetBlockType;
             var bottomMatch = target.ElementView?.GetBlockType == bottom.ElementView?.GetBlockType;
@@ -266,11 +274,11 @@ namespace Game.Scripts.Core
 
             return ((topMatch && bottomMatch) || (leftMatch && rightMatch));
         }
-        
+
 
         private void CollectNeighbors(Vector2Int checkedPos, ref List<Vector2Int> collectList)
         {
-            if (_currentMap.TryGetElementData(checkedPos, out var checkedElement))
+            if (levelHandler.CurrentMap.TryGetElementData(checkedPos, out var checkedElement))
             {
                 if (checkedElement.ElementView.GetBlockType is BlockType.Empty)
                     return;
@@ -279,9 +287,10 @@ namespace Game.Scripts.Core
                 {
                     var neighborPos = checkedPos + DirectionUtility.GetOffset(direction);
 
-                    if (_currentMap.TryGetElementData(neighborPos, out var neighborElement))
+                    if (levelHandler.CurrentMap.TryGetElementData(neighborPos, out var neighborElement))
                     {
-                        var hasSameTypes = neighborElement.ElementView.GetBlockType == checkedElement.ElementView.GetBlockType;
+                        var hasSameTypes = neighborElement.ElementView.GetBlockType ==
+                                           checkedElement.ElementView.GetBlockType;
                         var notCollected = !collectList.Contains(neighborPos);
 
                         if (hasSameTypes && notCollected)
@@ -298,7 +307,7 @@ namespace Game.Scripts.Core
         {
             underBlockPos = mapElementPos + DirectionUtility.GetOffset(Direction.Down);
 
-            if (_currentMap.TryGetElementData(underBlockPos, out var bottomElement))
+            if (levelHandler.CurrentMap.TryGetElementData(underBlockPos, out var bottomElement))
             {
                 if (bottomElement.ElementView.GetBlockType is BlockType.Empty && !bottomElement.ElementView.IsBusy)
                     return true;
@@ -311,7 +320,7 @@ namespace Game.Scripts.Core
         {
             aboveBlockPos = mapElementPos + DirectionUtility.GetOffset(Direction.Up);
 
-            if (_currentMap.TryGetElementData(aboveBlockPos, out var topElement))
+            if (levelHandler.CurrentMap.TryGetElementData(aboveBlockPos, out var topElement))
             {
                 if (topElement.ElementView.GetBlockType is not BlockType.Empty)
                     return true;
@@ -334,8 +343,8 @@ namespace Game.Scripts.Core
 
             if (resultPos != mapElementPos)
             {
-                _currentMap.TryGetElementData(mapElementPos, out var fallenBlock);
-                _currentMap.TryGetElementData(resultPos, out var lastBottomBlock);
+                levelHandler.CurrentMap.TryGetElementData(mapElementPos, out var fallenBlock);
+                levelHandler.CurrentMap.TryGetElementData(resultPos, out var lastBottomBlock);
 
                 //await DoBlocksSwap(fallenBlock, lastBottomBlock, false, cellsToFall);
 
@@ -344,9 +353,9 @@ namespace Game.Scripts.Core
             }
         }
 
-        private void CheckEndGame()
+        /*private void CheckEndGame()
         {
-            var isMapEmpty = _currentMap.LevelElements.All(mapElement =>
+            var isMapEmpty = loadLevelHandler.CurrentMap.LevelElements.All(mapElement =>
                 mapElement.ElementView.GetBlockType is BlockType.Empty && !mapElement.ElementView.IsBusy);
 
             if (isMapEmpty)
@@ -354,23 +363,6 @@ namespace Game.Scripts.Core
                 _currentLevelIndex++;
                 LoadLevel(_currentLevelIndex);
             }
-        }
-
-        private void UnloadCurrentLevel()
-        {
-            _cancellationTokenSource.Cancel();
-            _cancellationTokenSource = new();
-            
-            foreach (var pair in _currentMap.LevelElements)
-            {
-                if (pair.ElementView != null)
-                {
-                    pair.ElementView.UnsubscribeEvents();
-                    Destroy(pair.ElementView.gameObject);
-                }
-            }
-
-            _currentMap.LevelElements.Clear();
-        }
+        }*/
     }
 }
