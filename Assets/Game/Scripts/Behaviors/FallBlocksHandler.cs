@@ -123,6 +123,9 @@ namespace Game.Scripts.Core
                     bool fallCompleted = false;
                     var standardViewScale = fallingBlockView.View.localScale;
                     
+                    fallingBlockView.SetBusy(true);
+                    targetBlockView.SetBusy(true);
+                    
                     DOTween.Sequence()
                         .Join(fallingBlockView.View.DOScale(standardViewScale * 0.75f,
                             0.2f))
@@ -146,6 +149,9 @@ namespace Game.Scripts.Core
                     }
 
                     await UniTask.WaitUntil(() => fallCompleted, cancellationToken: Data.TokenSource.Token);
+                    
+                    fallingBlockView.SetBusy(false);
+                    targetBlockView.SetBusy(false);
                 }
             }
         }
