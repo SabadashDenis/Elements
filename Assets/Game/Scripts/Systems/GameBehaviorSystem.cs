@@ -17,7 +17,7 @@ namespace Game.Scripts.Core
                 var levelBehavior = behaviorList.FirstOrDefault((behavior => behavior is LevelBehavior)) as LevelBehavior;
 
                 resultSaveData.MapState = levelBehavior.GetMapState;
-                resultSaveData.LevelIndex = levelBehavior.CurrentLevelIndex;
+                resultSaveData.LevelIndex = levelBehavior.GetCurrentLevelIndex;
 
                 return resultSaveData;
             }

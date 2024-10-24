@@ -3,11 +3,17 @@ using UnityEngine;
 
 namespace Game.Scripts.Data
 {
-    public class DirectionUtility
+    public static class DirectionUtility
     {
         public static readonly List<Direction> AllDirections = new()
             { Direction.Up, Direction.Down, Direction.Left, Direction.Right };
 
+        public static readonly List<Direction> VerticalDirections = new()
+            { Direction.Up, Direction.Down};
+        
+        public static readonly List<Direction> HorizontalDirections = new()
+            { Direction.Left, Direction.Right };
+        
         public static Vector2Int GetOffset(Direction dir)
         {
             switch (dir)

@@ -20,7 +20,7 @@ public class BlockView : DragView
     private DestroyAnimBehavior _destroyAnimBehavior;
     private DestroyAnimBehavior DestroyAnimBehavior =>
         _destroyAnimBehavior ??= animator.GetBehaviour<DestroyAnimBehavior>();
-    public BlockType GetBlockType => _isBusy ? BlockType.Empty : _type;
+    public BlockType GetBlockType => _type;
     public RectTransform View => view;
     public bool IsBusy => _isBusy;
     
@@ -33,6 +33,8 @@ public class BlockView : DragView
 
     public void SetType(BlockType type)
     {
+        Debug.Log($"Set type: {type}");
+        
         _type = type;
 
         var typeData = config.GetDataForType(type);

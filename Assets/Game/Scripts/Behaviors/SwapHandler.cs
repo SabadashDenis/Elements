@@ -104,5 +104,10 @@ namespace Game.Scripts.Core
             first.SetBusy(false);
             second.SetBusy(false);
         }
+        
+        public override void UnsubscribeEvents()
+        {
+            OnSwapReleased = delegate { };
+        }
     }
 }

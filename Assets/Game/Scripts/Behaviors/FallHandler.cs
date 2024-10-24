@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -8,14 +9,16 @@ using UnityEngine;
 
 namespace Game.Scripts.Core
 {
-    public class FallBlocksHandler : HandlerBase<LevelMapData, CancellationTokenSource>
+    public class FallHandler : HandlerBase<LevelMapData, CancellationTokenSource>
     {
+        public event Action OnFallCompleted = delegate {  };
+        
         public void StartFallRoutine()
         {
-            FallAllBlocksRoutine();
+            FallBlocksRoutine().Forget();
         }
 
-        private void FallAllBlocksRoutine()
+        private async UniTask FallBlocksRoutine()
         {
             Dictionary<Vector2Int, int> fallTargets = new();
 
@@ -35,10 +38,17 @@ namespace Game.Scripts.Core
                     break;
             }
 
+            List<UniTask> columnFallTasks = new();
+            
             foreach (var fallTarget in fallTargets)
             {
-                FallOneColumn(fallTarget.Key, fallTarget.Value);
+                columnFallTasks.Add(FallOneColumn(fallTarget.Key, fallTarget.Value));
             }
+            
+            await UniTask.WaitWhile(() => columnFallTasks.Any((task) => !task.GetAwaiter().IsCompleted),
+                cancellationToken: Data.TokenSource.Token);
+            
+            OnFallCompleted.Invoke();
         }
 
         private bool CanFall(Vector2Int elementPos, out int cellsToFall)
@@ -73,14 +83,19 @@ namespace Game.Scripts.Core
             return canFall;
         }
 
-        private void FallOneColumn(Vector2Int firstFallenElementPos, int cellsToFall)
+        private async UniTask FallOneColumn(Vector2Int firstFallenElementPos, int cellsToFall)
         {
             var fallingColumn = CollectFallingColumn(firstFallenElementPos);
 
+            List<UniTask> fallTasks = new();
+            
             foreach (var fallingElementPos in fallingColumn)
             {
-                DoFall(fallingElementPos, cellsToFall).Forget();
+                fallTasks.Add(DoFall(fallingElementPos, cellsToFall));
             }
+
+            await UniTask.WaitWhile(() => fallTasks.Any((task) => !task.GetAwaiter().IsCompleted),
+                cancellationToken: Data.TokenSource.Token);
         }
 
         private List<Vector2Int> CollectFallingColumn(Vector2Int firstFallenElementPos)
@@ -150,6 +165,11 @@ namespace Game.Scripts.Core
                     targetBlockView.SetBusy(false);
                 }
             }
+        }
+
+        public override void UnsubscribeEvents()
+        {
+            OnFallCompleted = delegate { };
         }
     }
 }

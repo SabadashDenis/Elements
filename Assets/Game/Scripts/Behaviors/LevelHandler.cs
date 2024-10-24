@@ -19,6 +19,7 @@ namespace Game.Scripts.Core
         private LevelMapData _currentMapCache = new();
 
         public LevelMapData CurrentMap => _currentMapCache;
+        public int CurrentLevelIndex => _currentLevelIndex;
 
         public LevelData GetMapState
         {
@@ -101,6 +102,12 @@ namespace Game.Scripts.Core
             }
 
             _currentMapCache.LevelElements.Clear();
+        }
+
+        public override void UnsubscribeEvents()
+        {
+            OnLevelUnload = delegate { };
+            OnLevelLoaded = delegate { };
         }
     }
 }
