@@ -89,9 +89,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   swapAnimConfig:
-    scaleInMultiplier: 0.75
-    scaleDuration: 0.2
-    moveDuration: 0.5
+    scaleInMultiplier: 0.9
+    scaleDuration: 0.1
+    moveDuration: 0.25
 --- !u!1 &1156863250302314795
 GameObject:
   m_ObjectHideFlags: 0
@@ -225,6 +225,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34f2adca54aa4430907120d10c626048, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fallAnimData:
+    scaleInMultiplier: 0.7
+    scaleDuration: 0.1
+    moveDuration: 0.15
 --- !u!1 &6196203568612998771
 GameObject:
   m_ObjectHideFlags: 0

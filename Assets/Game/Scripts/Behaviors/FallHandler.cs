@@ -11,6 +11,8 @@ namespace Game.Scripts.Core
 {
     public class FallHandler : HandlerBase<LevelMapData, CancellationTokenSource>
     {
+        [SerializeField] private FallAnimData fallAnimData;
+        
         public event Action OnFallCompleted = delegate {  };
         
         public void StartFallRoutine()
@@ -138,11 +140,11 @@ namespace Game.Scripts.Core
                     targetBlockView.SetBusy(true);
 
                     DOTween.Sequence()
-                        .Join(fallingBlockView.View.DOScale(standardViewScale * 0.75f,
-                            0.2f))
-                        .Join(fallingBlockView.View.DOMove(targetBlockView.View.position, 0.25f * cellsToFall)
-                            .SetEase(Ease.InOutSine))
-                        .Append(fallingBlockView.View.DOScale(standardViewScale, 0.2f))
+                        .Join(fallingBlockView.View.DOScale(standardViewScale * fallAnimData.ScaleInMultiplier,
+                            fallAnimData.ScaleDuration))
+                        .Join(fallingBlockView.View.DOMove(targetBlockView.View.position,
+                            fallAnimData.MoveDuration * cellsToFall).SetEase(Ease.InOutSine))
+                        .Append(fallingBlockView.View.DOScale(standardViewScale, fallAnimData.ScaleDuration))
                         .OnComplete(() =>
                         {
                             SwitchViews();

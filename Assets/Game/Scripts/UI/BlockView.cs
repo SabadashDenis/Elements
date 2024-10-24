@@ -47,7 +47,7 @@ public class BlockView : DragView
     public async UniTask Destroy(CancellationToken token)
     {
         SetBusy(true);
-        
+
         animator.Play("Destroy");
         animator.Update(0);
         
@@ -55,7 +55,7 @@ public class BlockView : DragView
         SetType(BlockType.Empty);
         
         SetBusy(false);
-        
+
         OnBlockDestroy.Invoke();
     }
 

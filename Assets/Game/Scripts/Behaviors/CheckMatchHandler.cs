@@ -54,11 +54,10 @@ namespace Game.Scripts.Core
 
                     if (Data.HandlerData.LevelElements.TryGetValue(neighborPos, out var neighborElement))
                     {
-                        var hasSameTypes = neighborElement.GetBlockType ==
-                                           checkedElement.GetBlockType;
+                        var hasSameTypes = neighborElement.GetBlockType == checkedElement.GetBlockType;
                         var notCollected = !collectList.Contains(neighborPos);
 
-                        if (hasSameTypes && notCollected)
+                        if (hasSameTypes && notCollected && !neighborElement.IsBusy)
                         {
                             collectList.Add(neighborPos);
                             CollectFullMatchGroup(neighborPos, ref collectList);
@@ -94,8 +93,6 @@ namespace Game.Scripts.Core
         
         private bool HasMatchInDirections(Vector2Int checkedElement, List<Direction> directions)
         {
-            bool hasMatch = true;
-            
             if (Data.HandlerData.LevelElements.TryGetValue(checkedElement, out var checkedBlockView))
             {
                 if (checkedBlockView.GetBlockType is BlockType.Empty || checkedBlockView.IsBusy)
@@ -108,11 +105,10 @@ namespace Game.Scripts.Core
                     if (Data.HandlerData.LevelElements.TryGetValue(neighborPos, out var neighborBlockView))
                     {
                         var anyIsBusy = checkedBlockView.IsBusy || neighborBlockView.IsBusy;
+                        var hasDifferentTypes = neighborBlockView.GetBlockType != checkedBlockView.GetBlockType;
                         
-                        if (neighborBlockView.GetBlockType is BlockType.Empty || anyIsBusy)
+                        if (hasDifferentTypes || anyIsBusy)
                             return false;
-                        
-                        hasMatch &= neighborBlockView.GetBlockType == checkedBlockView.GetBlockType;
                     }
                     else
                     {
@@ -125,7 +121,7 @@ namespace Game.Scripts.Core
                 return false;
             }
 
-            return hasMatch;
+            return true;
         }
 
         public override void UnsubscribeEvents()
