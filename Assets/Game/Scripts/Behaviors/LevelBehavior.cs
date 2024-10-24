@@ -53,7 +53,8 @@ namespace Game.Scripts.Core
         private void ConnectMatchHandler(LevelMapData levelMapData)
         {
             matchHandler.Init(new(levelMapData, _cancellationTokenSource));
-            matchHandler.OnMatchesEnded += CheckEndGame;
+            matchHandler.OnMatchFound += CheckEndGame;
+            matchHandler.OnMatchFound += fallHandler.StartFallRoutine;
         }
 
         private void CheckEndGame()

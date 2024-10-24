@@ -33,8 +33,6 @@ public class BlockView : DragView
 
     public void SetType(BlockType type)
     {
-        Debug.Log($"Set type: {type}");
-        
         _type = type;
 
         var typeData = config.GetDataForType(type);

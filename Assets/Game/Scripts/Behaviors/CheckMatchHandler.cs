@@ -10,7 +10,7 @@ namespace Game.Scripts.Core
 {
     public class CheckMatchHandler : HandlerBase<LevelMapData, CancellationTokenSource>
     {
-        public event Action OnMatchesEnded = delegate {  };
+        public event Action OnMatchFound = delegate {  };
 
         public void StartCheckMatchRoutine()
         {
@@ -36,9 +36,9 @@ namespace Game.Scripts.Core
 
                 await UniTask.WaitWhile(() => destroyTasks.Any((task) => !task.GetAwaiter().IsCompleted),
                     cancellationToken: Data.TokenSource.Token);
+                
+                OnMatchFound.Invoke();
             }
-            
-            OnMatchesEnded.Invoke();
         }
         
         private void CollectFullMatchGroup(Vector2Int checkedPos, ref List<Vector2Int> collectList)
@@ -128,7 +128,7 @@ namespace Game.Scripts.Core
 
         public override void UnsubscribeEvents()
         {
-            OnMatchesEnded = delegate { };
+            OnMatchFound = delegate { };
         }
     }
 }
