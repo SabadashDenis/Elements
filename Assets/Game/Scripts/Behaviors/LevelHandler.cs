@@ -90,8 +90,6 @@ namespace Game.Scripts.Core
 
         private void UnloadCurrentLevel()
         {
-            OnLevelUnload.Invoke();
-
             foreach (var pair in _currentMapCache.LevelElements)
             {
                 if (pair.Value != null)
@@ -102,6 +100,8 @@ namespace Game.Scripts.Core
             }
 
             _currentMapCache.LevelElements.Clear();
+            
+            OnLevelUnload.Invoke();
         }
 
         public override void UnsubscribeEvents()

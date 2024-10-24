@@ -53,7 +53,7 @@ namespace Game.Scripts.Core
         private void ConnectMatchHandler(LevelMapData levelMapData)
         {
             matchHandler.Init(new(levelMapData, _cancellationTokenSource));
-            matchHandler.OnCheckMatchEnd += CheckEndGame;
+            matchHandler.OnMatchesEnded += CheckEndGame;
         }
 
         private void CheckEndGame()
