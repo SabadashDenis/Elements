@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Threading;
+using UnityEngine;
 
 namespace Game.Scripts.Core
 {
@@ -35,7 +36,23 @@ namespace Game.Scripts.Core
                 OnInit(data);
             }
         }
-        
+
+        protected abstract void OnInit(TData data);
+    }
+
+    public abstract class MultiInitableBehaviorBase<TData> : MonoBehaviour, IInitable<TData>
+    {
+        private bool _isInitialized;
+        protected bool IsInitialized => _isInitialized;
+        protected TData Data;
+
+        public void Init(TData data)
+        {
+            Data = data;
+            _isInitialized = true;
+            OnInit(data);
+        }
+
         protected abstract void OnInit(TData data);
     }
 }

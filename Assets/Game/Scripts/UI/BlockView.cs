@@ -20,7 +20,7 @@ public class BlockView : DragView
     private DestroyAnimBehavior _destroyAnimBehavior;
     private DestroyAnimBehavior DestroyAnimBehavior =>
         _destroyAnimBehavior ??= animator.GetBehaviour<DestroyAnimBehavior>();
-    public BlockType GetBlockType => _isBusy ? BlockType.Empty : _type;
+    public BlockType GetBlockType => _type;
     public RectTransform View => view;
     public bool IsBusy => _isBusy;
     
@@ -47,7 +47,7 @@ public class BlockView : DragView
     public async UniTask Destroy(CancellationToken token)
     {
         SetBusy(true);
-        
+
         animator.Play("Destroy");
         animator.Update(0);
         
@@ -55,7 +55,7 @@ public class BlockView : DragView
         SetType(BlockType.Empty);
         
         SetBusy(false);
-        
+
         OnBlockDestroy.Invoke();
     }
 
