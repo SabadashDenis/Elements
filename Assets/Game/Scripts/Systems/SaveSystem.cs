@@ -13,9 +13,12 @@ namespace Game.Scripts.Core
         public void Save()
         {
             SaveData saveData = Data.GetSystem<GameBehaviorSystem>().GetSaveData;
-            
-            string json = JsonUtility.ToJson(saveData);
-            PlayerPrefs.SetString("Save", json);
+
+            if (saveData != null)
+            {
+                string json = JsonUtility.ToJson(saveData);
+                PlayerPrefs.SetString("Save", json);
+            }
         }
 
         private static SaveData LoadSave()
