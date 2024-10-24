@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -18,27 +17,36 @@ namespace Game.Scripts.Core
         {
             foreach (var levelElementData in Data.HandlerData.LevelElements)
             {
-                levelElementData.ElementView.OnSwipe += (swipeDir) => OnBlockSwiped(swipeDir, levelElementData);
+                levelElementData.Value.OnSwipe += (swipeDir) => OnBlockSwiped(swipeDir, levelElementData.Key);
             }
         }
 
-        private async void OnBlockSwiped(Direction swipeDirection, LevelElementData swipedElement)
+        private async void OnBlockSwiped(Direction swipeDirection, Vector2Int swipedElementPos)
         {
-            if (CanBeSwiped(swipeDirection, swipedElement, out var swipeTarget))
+            if (CanBeSwapped(swipeDirection, swipedElementPos, out var swapTargetPos))
             {
-                await DoBlocksSwap(swipedElement.ElementView, swipeTarget.ElementView);
-                OnSwapReleased.Invoke(); //CheckMatches();
+                Data.HandlerData.LevelElements.TryGetValue(swipedElementPos, out var first);
+                Data.HandlerData.LevelElements.TryGetValue(swapTargetPos, out var second);
+                
+                await DoBlocksSwap(first, second);
+                OnSwapReleased.Invoke();
             }
         }
 
-        private bool CanBeSwiped(Direction swipeDirection, LevelElementData swipedElement,
-            out LevelElementData swipeTarget)
+        private bool CanBeSwapped(Direction swipeDirection, Vector2Int swipedElementPos, out Vector2Int swapTargetPos)
         {
-            var blockToSwapPos = swipedElement.ElementPos + DirectionUtility.GetOffset(swipeDirection);
-            swipeTarget = Data.HandlerData.LevelElements.First((target) => target.ElementPos == blockToSwapPos);
-            var swipeToJump = swipeDirection is Direction.Up && swipeTarget.ElementView.GetBlockType is BlockType.Empty;
+            swapTargetPos = swipedElementPos + DirectionUtility.GetOffset(swipeDirection);
 
-            return !(swipedElement.ElementView.IsBusy || swipeTarget.ElementView.IsBusy) && !swipeToJump;
+            if (Data.HandlerData.LevelElements.TryGetValue(swapTargetPos, out var swapTarget))
+            {
+                if (Data.HandlerData.LevelElements.TryGetValue(swipedElementPos, out var swipedBlock))
+                {
+                    var swipeToJump = swipeDirection is Direction.Up && swapTarget.GetBlockType is BlockType.Empty;
+                    return !(swipedBlock.IsBusy || swapTarget.IsBusy) && !swipeToJump;
+                }
+            }
+
+            return false;
         }
 
         private async UniTask DoBlocksSwap(BlockView first, BlockView second)
@@ -55,7 +63,7 @@ namespace Game.Scripts.Core
             second.SetBusy(true);
 
             bool swapCompleted = false;
-            
+
             DOTween.Sequence()
                 .Join(first.View.DOScale(standardScale * swapAnimConfig.ScaleInMultiplier,
                     swapAnimConfig.ScaleDuration))
@@ -90,7 +98,7 @@ namespace Game.Scripts.Core
                 first.View.anchorMax = second.View.anchorMax = Vector2.one;
                 first.View.anchoredPosition = second.View.anchoredPosition = Vector2.zero;
             }
-            
+
             await UniTask.WaitUntil(() => swapCompleted, cancellationToken: Data.TokenSource.Token);
 
             first.SetBusy(false);

@@ -6,16 +6,18 @@ namespace Game.Scripts.Core
 {
     public class LevelMapData
     {
-        public readonly List<LevelElementData> LevelElements = new ();
+        public readonly Dictionary<Vector2Int, BlockView> LevelElements = new ();
+        public readonly Vector2Int MapSize = new ();
 
         public LevelMapData() { }
         
-        public LevelMapData(List<LevelElementData> levelElements)
+        public LevelMapData(Dictionary<Vector2Int, BlockView> levelElements, Vector2Int mapSize)
         {
             LevelElements = levelElements;
+            MapSize = mapSize;
         }
 
-        public bool TryGetElementData(Vector2Int elementPos, out LevelElementData elementData)
+        /*public bool TryGetElementData(Vector2Int elementPos, out LevelElementData elementData)
         {
             if (LevelElements.Any((item) => item.ElementPos == elementPos))
             {
@@ -25,9 +27,9 @@ namespace Game.Scripts.Core
 
             elementData = new LevelElementData();
             return false;
-        }
+        }*/
         
-        public bool TryGetElementData(BlockView elementView, out LevelElementData elementData)
+        /*public bool TryGetElementData(BlockView elementView, out LevelElementData elementData)
         {
             if (LevelElements.Any((item) => item.ElementView.Equals(elementView)))
             {
@@ -37,10 +39,10 @@ namespace Game.Scripts.Core
 
             elementData = new LevelElementData();
             return false;
-        }
+        }*/
     }
 
-    public struct LevelElementData
+    /*public struct LevelElementData
     {
         public readonly Vector2Int ElementPos;
         public readonly BlockView ElementView;
@@ -50,5 +52,5 @@ namespace Game.Scripts.Core
             ElementPos = elementPos;
             ElementView = elementView;
         }
-    }
+    }*/
 }

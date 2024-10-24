@@ -1,12 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using Cysharp.Threading.Tasks;
-using DG.Tweening;
 using Game.Scripts.Data;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Game.Scripts.Core
 {
@@ -14,6 +9,7 @@ namespace Game.Scripts.Core
     {
         [SerializeField] private SwapHandler swapHandler;
         [SerializeField] private LevelHandler levelHandler;
+        [SerializeField] private FallBlocksHandler fallHandler;
 
         private GameScreen _gameScreen;
 
@@ -39,7 +35,7 @@ namespace Game.Scripts.Core
             //LoadLevel(_currentLevelIndex, SaveSystem.GetCurrentSave);
 
             ConnectLoadLevelHandler();
-            
+
             levelHandler.LoadLevelInitial();
             
             _gameScreen.RestartBtn.OnClickEvent += levelHandler.RestartLevel;
@@ -52,11 +48,18 @@ namespace Game.Scripts.Core
 
             levelHandler.OnLevelUnload += StopAllRoutines;
             levelHandler.OnLevelLoaded += ConnectSwapHandler;
+            levelHandler.OnLevelLoaded += ConnectFallHandler;
         }
 
         private void ConnectSwapHandler(LevelMapData levelMapData)
         {
             swapHandler.Init(new(levelMapData, _cancellationTokenSource));
+            swapHandler.OnSwapReleased += fallHandler.StartFallRoutine;
+        }
+
+        private void ConnectFallHandler(LevelMapData levelMapData)
+        {
+            fallHandler.Init( new(levelMapData, _cancellationTokenSource));
         }
 
         private void StopAllRoutines()
@@ -195,7 +198,7 @@ namespace Game.Scripts.Core
             second.SetBusy(false);
         }*/
 
-        private async UniTask<bool> NormalizeMap()
+        /*private async UniTask<bool> NormalizeMap()
         {
             bool isNormalized = false;
 
@@ -203,9 +206,9 @@ namespace Game.Scripts.Core
 
             foreach (var mapElement in levelHandler.CurrentMap.LevelElements)
             {
-                if (mapElement.ElementView.GetBlockType is not BlockType.Empty)
+                if (mapElement.Value.GetBlockType is not BlockType.Empty)
                 {
-                    //normalizeTasks.Add(DoFall(mapElement.Key));
+                    normalizeTasks.Add(DoFall(mapElement.Key));
                 }
             }
 
@@ -216,8 +219,13 @@ namespace Game.Scripts.Core
                 cancellationToken: _cancellationTokenSource.Token);
 
             return isNormalized;
-        }
+        }*/
 
+        /*private void CheckBlockMatches()
+        {
+            CheckMatches();
+        }
+        
         private async UniTaskVoid CheckMatches()
         {
             var isMapNormalized = await NormalizeMap();
@@ -226,11 +234,11 @@ namespace Game.Scripts.Core
 
             foreach (var mapElement in levelHandler.CurrentMap.LevelElements)
             {
-                if (!HasThreeInRow(mapElement.ElementPos))
+                if (!HasThreeInRow(mapElement.Key))
                     continue;
 
                 List<Vector2Int> currentCheckedGroup = new();
-                CollectNeighbors(mapElement.ElementPos, ref currentCheckedGroup);
+                CollectNeighbors(mapElement.Key, ref currentCheckedGroup);
 
                 if (currentCheckedGroup.Count > biggestMatchGroup.Count)
                 {
@@ -243,9 +251,9 @@ namespace Game.Scripts.Core
 
             foreach (var groupElementPos in biggestMatchGroup)
             {
-                if (levelHandler.CurrentMap.TryGetElementData(groupElementPos, out var groupElement))
+                if (levelHandler.CurrentMap.LevelElements.TryGetValue(groupElementPos, out var groupElement))
                 {
-                    destroyTasks.Add(groupElement.ElementView.Destroy(_cancellationTokenSource.Token));
+                    destroyTasks.Add(groupElement.Destroy(_cancellationTokenSource.Token));
                 }
             }
 
@@ -256,21 +264,21 @@ namespace Game.Scripts.Core
                 cancellationToken: _cancellationTokenSource.Token);
 
             CheckMatches().Forget();
-        }
+        }*/
 
         private bool HasThreeInRow(Vector2Int checkedPos)
         {
-            levelHandler.CurrentMap.TryGetElementData(checkedPos, out var target);
+            levelHandler.CurrentMap.LevelElements.TryGetValue(checkedPos, out var target);
 
-            levelHandler.CurrentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Up), out var top);
-            levelHandler.CurrentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Down), out var bottom);
-            levelHandler.CurrentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Left), out var left);
-            levelHandler.CurrentMap.TryGetElementData(checkedPos + DirectionUtility.GetOffset(Direction.Right), out var right);
+            levelHandler.CurrentMap.LevelElements.TryGetValue(checkedPos + DirectionUtility.GetOffset(Direction.Up), out var top);
+            levelHandler.CurrentMap.LevelElements.TryGetValue(checkedPos + DirectionUtility.GetOffset(Direction.Down), out var bottom);
+            levelHandler.CurrentMap.LevelElements.TryGetValue(checkedPos + DirectionUtility.GetOffset(Direction.Left), out var left);
+            levelHandler.CurrentMap.LevelElements.TryGetValue(checkedPos + DirectionUtility.GetOffset(Direction.Right), out var right);
 
-            var topMatch = target.ElementView?.GetBlockType == top.ElementView?.GetBlockType;
-            var bottomMatch = target.ElementView?.GetBlockType == bottom.ElementView?.GetBlockType;
-            var leftMatch = target.ElementView?.GetBlockType == left.ElementView?.GetBlockType;
-            var rightMatch = target.ElementView?.GetBlockType == right.ElementView?.GetBlockType;
+            var topMatch = target?.GetBlockType == top?.GetBlockType;
+            var bottomMatch = target?.GetBlockType == bottom?.GetBlockType;
+            var leftMatch = target?.GetBlockType == left?.GetBlockType;
+            var rightMatch = target?.GetBlockType == right?.GetBlockType;
 
             return ((topMatch && bottomMatch) || (leftMatch && rightMatch));
         }
@@ -278,19 +286,19 @@ namespace Game.Scripts.Core
 
         private void CollectNeighbors(Vector2Int checkedPos, ref List<Vector2Int> collectList)
         {
-            if (levelHandler.CurrentMap.TryGetElementData(checkedPos, out var checkedElement))
+            if (levelHandler.CurrentMap.LevelElements.TryGetValue(checkedPos, out var checkedElement))
             {
-                if (checkedElement.ElementView.GetBlockType is BlockType.Empty)
+                if (checkedElement.GetBlockType is BlockType.Empty)
                     return;
 
                 foreach (var direction in DirectionUtility.AllDirections)
                 {
                     var neighborPos = checkedPos + DirectionUtility.GetOffset(direction);
 
-                    if (levelHandler.CurrentMap.TryGetElementData(neighborPos, out var neighborElement))
+                    if (levelHandler.CurrentMap.LevelElements.TryGetValue(neighborPos, out var neighborElement))
                     {
-                        var hasSameTypes = neighborElement.ElementView.GetBlockType ==
-                                           checkedElement.ElementView.GetBlockType;
+                        var hasSameTypes = neighborElement.GetBlockType ==
+                                           checkedElement.GetBlockType;
                         var notCollected = !collectList.Contains(neighborPos);
 
                         if (hasSameTypes && notCollected)
@@ -307,9 +315,9 @@ namespace Game.Scripts.Core
         {
             underBlockPos = mapElementPos + DirectionUtility.GetOffset(Direction.Down);
 
-            if (levelHandler.CurrentMap.TryGetElementData(underBlockPos, out var bottomElement))
+            if (levelHandler.CurrentMap.LevelElements.TryGetValue(underBlockPos, out var bottomElement))
             {
-                if (bottomElement.ElementView.GetBlockType is BlockType.Empty && !bottomElement.ElementView.IsBusy)
+                if (bottomElement.GetBlockType is BlockType.Empty && !bottomElement.IsBusy)
                     return true;
             }
 
@@ -320,16 +328,16 @@ namespace Game.Scripts.Core
         {
             aboveBlockPos = mapElementPos + DirectionUtility.GetOffset(Direction.Up);
 
-            if (levelHandler.CurrentMap.TryGetElementData(aboveBlockPos, out var topElement))
+            if (levelHandler.CurrentMap.LevelElements.TryGetValue(aboveBlockPos, out var topElement))
             {
-                if (topElement.ElementView.GetBlockType is not BlockType.Empty)
+                if (topElement.GetBlockType is not BlockType.Empty)
                     return true;
             }
 
             return false;
         }
 
-        private async UniTask DoFall(Vector2Int mapElementPos)
+        /*private async UniTask DoFall(Vector2Int mapElementPos)
         {
             Vector2Int resultPos = mapElementPos;
 
@@ -340,18 +348,21 @@ namespace Game.Scripts.Core
                 resultPos = underBlockPos;
                 cellsToFall++;
             }
+            
+            if(cellsToFall == 0)
+                return;
 
             if (resultPos != mapElementPos)
             {
-                levelHandler.CurrentMap.TryGetElementData(mapElementPos, out var fallenBlock);
-                levelHandler.CurrentMap.TryGetElementData(resultPos, out var lastBottomBlock);
+                levelHandler.CurrentMap.LevelElements.TryGetValue(mapElementPos, out var fallenBlock);
+                levelHandler.CurrentMap.LevelElements.TryGetValue(resultPos, out var lastBottomBlock);
 
                 //await DoBlocksSwap(fallenBlock, lastBottomBlock, false, cellsToFall);
 
                 if (HasBlockAbove(mapElementPos, out var topElementPos))
                     await DoFall(topElementPos);
             }
-        }
+        }*/
 
         /*private void CheckEndGame()
         {

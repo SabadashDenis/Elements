@@ -29,8 +29,8 @@ namespace Game.Scripts.Core
 
                 foreach (var mapElement in _currentMapCache.LevelElements)
                 {
-                    var blockData = new BlockData(mapElement.ElementView.GetBlockType,
-                        new Vector2Int(mapElement.ElementPos.y, mapElement.ElementPos.x));
+                    var blockData = new BlockData(mapElement.Value.GetBlockType,
+                        new Vector2Int(mapElement.Key.x, mapElement.Key.y));
                     blockDatas.Add(blockData);
                 }
 
@@ -97,10 +97,10 @@ namespace Game.Scripts.Core
 
             foreach (var pair in _currentMapCache.LevelElements)
             {
-                if (pair.ElementView != null)
+                if (pair.Value != null)
                 {
-                    pair.ElementView.UnsubscribeEvents();
-                    Destroy(pair.ElementView.gameObject);
+                    pair.Value.UnsubscribeEvents();
+                    Destroy(pair.Value.gameObject);
                 }
             }
 
